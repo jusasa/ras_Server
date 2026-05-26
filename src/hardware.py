@@ -82,7 +82,8 @@ class HardwareController:
         # 3. PIR 모션 읽기
         motion = GPIO.input(self.pir_pin)
 
-        is_dark = 1 if GPIO.input(self.light_pin) else 0
+        # 조도 센서가 0일 때 어두움(1) 상태가 되도록 설정
+        is_dark = 0 if GPIO.input(self.light_pin) else 1
         return {
             "temperature": self.last_temp,
             "humidity": self.last_hum,
@@ -95,7 +96,7 @@ class HardwareController:
         """AI 추론 결과 및 단순 조도 센서 값에 따른 피드백 제어"""
         GPIO.output(self.led_action, GPIO.HIGH if control_dict.get("led_action") else GPIO.LOW)
         GPIO.output(self.led_interact, GPIO.HIGH if control_dict.get("led_interact") else GPIO.LOW)
-        GPIO.output(self.led_sleep, GPIO.LOW if is_dark == 1 else GPIO.HIGH)
+        GPIO.output(self.led_sleep, GPIO.HIGH if is_dark == 1 else GPIO.LOW)
         GPIO.output(self.led_care_status, GPIO.HIGH if control_dict.get("led_care_status") else GPIO.LOW)
         
     def cleanup(self):

@@ -232,8 +232,8 @@
                 // LED 갱신
                 updateLedUI('led1-card', ai.led_action);
                 updateLedUI('led2-card', ai.led_interact);
-                // LED 3은 AI 추론과 독립적으로 조도 센서 값에 따라 표시 (조도가 1이면 끄고, 0이면 켬)
-                updateLedUI('led3-card', sensors.is_dark === 0);
+                // LED 3은 AI 추론과 독립적으로 조도 센서 값에 따라 표시 (조도 센서가 0(어두움=1)이면 켬, 1(밝음=0)이면 끔)
+                updateLedUI('led3-card', sensors.is_dark === 1);
                 updateLedUI('led4-card', ai.led_care_status);
 
                 // 백엔드의 현재 수집 상태(current_label)와 UI 동기화
