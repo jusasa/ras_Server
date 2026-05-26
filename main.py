@@ -109,6 +109,20 @@ async def sensor_ai_loop():
                     "is_dark": 0
                 }
 
+            # 1-1. Thom의 불쾌지수(DI) 기반 쾌적도(Comfort Score) 산출
+            temp = sensor_data["temperature"]
+            hum = sensor_data["humidity"]
+            di = 0.81 * temp + 0.01 * hum * (0.99 * temp - 14.3) + 46.3
+
+            if 60.0 <= di <= 68.0:
+                comfort_score = 100.0
+            elif di > 68.0:
+                comfort_score = max(0.0, 100.0 - (di - 68.0) * (100.0 / (83.0 - 68.0)))
+            else:  # di < 60.0
+                comfort_score = max(0.0, 100.0 - (60.0 - di) * (100.0 / (60.0 - 45.0)))
+
+            sensor_data["comfort_score"] = int(round(comfort_score))
+
             # 2. TFLite AI 모델 추론 및 액추에이터 제어 명령 수립
             ai_decision = await asyncio.to_thread(ai_engine.predict, sensor_data)
             await asyncio.to_thread(hw_controller.control_leds, ai_decision)
@@ -117,6 +131,7 @@ async def sensor_ai_loop():
             logging.info(
                 f"[센서 추적] 온도: {sensor_data['temperature']}°C | "
                 f"습도: {sensor_data['humidity']}% | "
+                f"쾌적도: {sensor_data['comfort_score']}% | "
                 f"거리: {sensor_data['distance']}cm | "
                 f"모션: {sensor_data['motion']} | "
                 f"조도: {sensor_data['is_dark']} | "
