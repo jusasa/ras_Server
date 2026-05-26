@@ -43,7 +43,7 @@ class TFLiteEngine:
     def _preprocess(self, raw_data):
         """
         센서 데이터를 모델 입력 규격에 맞게 전처리합니다.
-        ★ 중요: 코랩에서 학습한 4개 특성(조도 제외) 순서를 엄격히 맞춥니다.
+        모델의 예상 배치 차원(예: 16)에 대응하기 위해 입력을 반복 복제하여 패딩합니다.
         """
         features = [
             raw_data["temperature"],  # 피처 1
@@ -51,8 +51,18 @@ class TFLiteEngine:
             raw_data["distance"],     # 피처 3
             raw_data["motion"]        # 피처 4
         ]
-        # 텐서플로우 입력 규격인 2차원 배치 형태 (1, 4)의 float32 넘파이 배열로 생성
-        return np.array([features], dtype=np.float32)
+        
+        # 모델의 예상 배치 크기 확인 (예: ValueError Dimension mismatch 방어)
+        expected_batch_size = 1
+        if self.is_loaded and self.input_details is not None:
+            try:
+                expected_batch_size = self.input_details[0]['shape'][0]
+            except Exception:
+                expected_batch_size = 1
+
+        # 배치 차원 팽창 (예: [1, 4] -> [expected_batch_size, 4])
+        input_data = np.repeat(np.array([features], dtype=np.float32), expected_batch_size, axis=0)
+        return input_data
 
     def _postprocess(self, model_output, raw_data):
         """
@@ -124,8 +134,11 @@ class TFLiteEngine:
                 # 2. 하드웨어 런타임 추론 구동 (Invoke)
                 self.interpreter.invoke()
                 
-                # 3. 출력 텐서 채널에서 예측 완료된 결과 배열 복사
-                output_tensor = self.interpreter.get_tensor(self.output_details[0]['index'])
+                # 3. 출력 텐서 채널에서 예측 완료된 결과 배열 복사 (배치 크기만큼 출력됨)
+                raw_output = self.interpreter.get_tensor(self.output_details[0]['index'])
+                
+                # 첫 번째 샘플에 대한 추론만 슬라이싱하여 반환 (후처리와 호환성 유지)
+                output_tensor = raw_output[0:1]
             except Exception as e:
                 logger.error(f"[추론 연산 에러] 임베디드 코어 연산 실패: {e}", exc_info=True)
                 output_tensor = None
