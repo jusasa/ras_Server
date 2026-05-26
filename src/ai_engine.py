@@ -1,6 +1,9 @@
 # src/ai_engine.py
 import numpy as np
 import tflite_runtime.interpreter as tflite
+import logging
+
+logger = logging.getLogger(__name__)
 
 class TFLiteEngine:
     def __init__(self, model_path="models/edge_model.tflite"):
@@ -22,19 +25,19 @@ class TFLiteEngine:
             self.input_details = self.interpreter.get_input_details()
             self.output_details = self.interpreter.get_output_details()
             
-            print(f"==================================================")
-            print(f"[AI 엔진 완료] 성공적으로 TFLite 모델을 로드했습니다.")
-            print(f" - 가동 모델: {self.model_path}")
-            print(f" - 입력 구조: {self.input_details[0]['shape']}") # [1, 4] 예측
-            print(f"==================================================")
+            logger.info("==================================================")
+            logger.info("[AI 엔진 완료] 성공적으로 TFLite 모델을 로드했습니다.")
+            logger.info(f" - 가동 모델: {self.model_path}")
+            logger.info(f" - 입력 구조: {self.input_details[0]['shape']}") # [1, 4] 예측
+            logger.info("==================================================")
             self.is_loaded = True
             
         except Exception as e:
-            print(f"==================================================")
-            print(f"[AI 엔진 에러] 실제 TFLite 모델 로드 중 실패했습니다.")
-            print(f" - 에러 내용: {e}")
-            print(f" - 안내: 모델이 없거나 손상되어 룰 기반 폴백 모드로 가동합니다.")
-            print(f"==================================================")
+            logger.error("==================================================")
+            logger.error(f"[AI 엔진 에러] 실제 TFLite 모델 로드 중 실패했습니다.")
+            logger.error(f" - 에러 내용: {e}", exc_info=True)
+            logger.error(" - 안내: 모델이 없거나 손상되어 룰 기반 폴백 모드로 가동합니다.")
+            logger.error("==================================================")
             self.is_loaded = False
 
     def _preprocess(self, raw_data):
@@ -99,7 +102,7 @@ class TFLiteEngine:
                 # 3. 출력 텐서 채널에서 예측 완료된 결과 배열 복사
                 output_tensor = self.interpreter.get_tensor(self.output_details[0]['index'])
             except Exception as e:
-                print(f"[추론 연산 에러] 임베디드 코어 연산 실패: {e}")
+                logger.error(f"[추론 연산 에러] 임베디드 코어 연산 실패: {e}", exc_info=True)
                 output_tensor = None
                 
         # 전처리 -> 추론 -> 후처리를 거친 최종 제어 명령 사전을 백엔드로 반환

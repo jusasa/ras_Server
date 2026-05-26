@@ -7,3 +7,4 @@ rpi-lgpio
 adafruit-circuitpython-dht==4.0.12
 adafruit-blinka==8.26.0
 numpy==1.26.2
+tflite-runtime

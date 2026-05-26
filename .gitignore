@@ -1,0 +1,20 @@
+# Logs
+logs/
+*.log
+
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Database
+*.db
+sensor_dataset.csv
+
+# Environments
+.venv/
+venv/
+ENV/
+env/
+/lib/
+/lib64/

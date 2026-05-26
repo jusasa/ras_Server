@@ -1,3 +1,37 @@
+import logging
+from logging.handlers import RotatingFileHandler
+import os
+
+# Configure logging
+LOG_DIR = "logs"
+os.makedirs(LOG_DIR, exist_ok=True)
+LOG_FILE_PATH = os.path.join(LOG_DIR, "app.log")
+
+# Setup root logger
+root_logger = logging.getLogger()
+root_logger.setLevel(logging.INFO)
+
+# Formatter
+formatter = logging.Formatter(
+    '[%(asctime)s] %(levelname)s [%(name)s:%(lineno)d] - %(message)s'
+)
+
+# Stream handler for console
+stream_handler = logging.StreamHandler()
+stream_handler.setFormatter(formatter)
+root_logger.addHandler(stream_handler)
+
+# Rotating File Handler (Max 100MB)
+file_handler = RotatingFileHandler(
+    LOG_FILE_PATH,
+    maxBytes=100 * 1024 * 1024,
+    backupCount=3,
+    encoding="utf-8"
+)
+file_handler.setFormatter(formatter)
+root_logger.addHandler(file_handler)
+
+# Standard imports
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect, Request
 from fastapi.templating import Jinja2Templates
 from contextlib import asynccontextmanager
@@ -65,7 +99,7 @@ async def sensor_ai_loop():
                     timeout=2.0
                 )
             except asyncio.TimeoutError:
-                print("[하드웨어 경고] 센서 무응답(타임아웃)! 배선을 확인하세요. 기본값을 반환합니다.")
+                logging.warning("[하드웨어 경고] 센서 무응답(타임아웃)! 배선을 확인하세요. 기본값을 반환합니다.")
                 sensor_data = {
                     "temperature": 0.0,
                     "humidity": 0.0,
@@ -99,10 +133,10 @@ async def sensor_ai_loop():
                     current_label
                 ))
                 conn.commit()
-                print(f"[DB 로깅] 라벨 {current_label} 수집 중... (거리: {sensor_data['distance']}cm)")
+                logging.info(f"[DB 로깅] 라벨 {current_label} 수집 중... (거리: {sensor_data['distance']}cm)")
 
         except Exception as e:
-            print(f"Loop Error: {e}")
+            logging.error(f"Loop Error: {e}", exc_info=True)
 
         await asyncio.sleep(1)
 
