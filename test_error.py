@@ -4,7 +4,7 @@ from src.ai_engine import TFLiteEngine
 async def simulate_hardware_timeout():
     print("\n[QA 테스트 1] 하드웨어 센서 타임아웃(무응답) 방어 로직")
     print("-" * 60)
-    print("상황: 장마철 습기로 인해 초음파 센서 선이 단선되거나 응답이 없는 상태 연출")
+    print("상황: 기기 노후화 또는 단선으로 센서 응답이 없는 상태 연출")
     
     # main.py의 센서 읽기 타임아웃 방어 로직을 흉내 내어 강제로 시간 초과(Timeout) 유발
     try:
@@ -56,7 +56,7 @@ def simulate_ai_inference_error():
 
 async def main():
     print("============================================================")
-    print(" 🛠️ 스마트팜 기후 가디언 - 에러 예외 처리(QA) 시뮬레이터 가동")
+    print(" 🛠️ AIoT 스마트 돌봄 시스템 - 에러 예외 처리(QA) 시뮬레이터 가동")
     print("============================================================")
     
     # 1. 모델 로드 에러 테스트

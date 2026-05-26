@@ -57,14 +57,14 @@ class TFLiteEngine:
     def _postprocess(self, model_output, raw_data):
         """
         AI 모델 추론 결과는 텍스트(상태)로만 보여주고,
-        LED 제어는 순수하게 센서 원시값(raw_data)에 즉각 반응하도록 분리합니다.
+        하드웨어 제어는 순수하게 센서 원시값(raw_data)에 즉각 반응하도록 분리합니다.
         """
-        # 1. 센서 원시값에 따른 1:1 즉각 하드웨어 제어
+        # 1. 센서 원시값에 따른 1:1 즉각 하드웨어 제어 (돌봄 교감 반응)
         command = {
-            "led_motion": True if raw_data["motion"] == 1 else False,
-            "led_dist": True if raw_data["distance"] < 30.0 else False,  # 30cm 이내 접근 시 켜짐
-            "led_dark": True if raw_data["is_dark"] == 1 else False,     # 어두워지면 켜짐
-            "led_status": True,                                          # 메인 시스템 가동 표시등
+            "led_action": True if raw_data["motion"] == 1 else False,         # 움직임에 반응(감정 표현)
+            "led_interact": True if raw_data["distance"] < 30.0 else False,   # 30cm 이내 접근 시 반응(스피커 교감)
+            "led_sleep": True if raw_data["is_dark"] == 1 else False,         # 어두워지면 취침 모드 진입
+            "led_care_status": True,                                          # 돌봄 시스템 가동 중
             "ai_status": "데이터 판독 불가 (AI 대기)"
         }
         
@@ -75,14 +75,14 @@ class TFLiteEngine:
             confidence = probabilities[predicted_class] * 100
 
             if predicted_class == 0:
-                command["ai_status"] = f"정상 상황 (AI 신뢰도: {confidence:.1f}%)"
+                command["ai_status"] = f"정상 상태 (안정적, 신뢰도: {confidence:.1f}%)"
             elif predicted_class == 1:
-                command["ai_status"] = f"위험: 침입자 감지! (AI 신뢰도: {confidence:.1f}%)"
+                command["ai_status"] = f"활발한 교감 중 (사용자 활동, 신뢰도: {confidence:.1f}%)"
             elif predicted_class == 2:
-                command["ai_status"] = f"주의: 이상 징후 포착! (AI 신뢰도: {confidence:.1f}%)"
+                command["ai_status"] = f"위험 감지! (장시간 무반응/환경 이상, 신뢰도: {confidence:.1f}%)"
         else:
             # 모델 로드 실패 시 폴백
-            command["ai_status"] = "안전 모니터링 중 (모델 오프라인)"
+            command["ai_status"] = "돌봄 모니터링 중 (모델 오프라인)"
                 
         return command
     def predict(self, raw_sensor_data):

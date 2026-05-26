@@ -8,19 +8,21 @@ class HardwareController:
         GPIO.setwarnings(False)
         GPIO.setmode(GPIO.BCM)
         
-        # 1. 액추에이터 (LED) 핀 번호
-        self.led_motion = 16
-        self.led_dist = 20
-        self.led_dark = 19
-        self.led_status = 26
+        # 1. 액추에이터 (LED/모터/스피커 대용) 핀 번호
+        self.led_action = 16       # 활동 반응 / 감정표현 모터
+        self.led_interact = 20     # 근접 교감 / 스피커 출력
+        self.led_sleep = 19        # 취침 환경 유도 표시
+        self.led_care_status = 26  # 돌봄 시스템 가동 상태
         
         # 초기값을 무조건 LOW로 동시 할당하여 튕김 방지
-        for pin in [self.led_motion, self.led_dist, self.led_dark, self.led_status]:
+        for pin in [self.led_action, self.led_interact, self.led_sleep, self.led_care_status]:
             GPIO.setup(pin, GPIO.OUT, initial=GPIO.LOW)
         
-        # 2. 일반 센서 (PIR) 핀 설정 - 조도(CdS) 완전히 삭제됨
+        # 2. 일반 센서 (PIR, 조도) 핀 설정
         self.pir_pin = 21  
         GPIO.setup(self.pir_pin, GPIO.IN)
+        self.light_pin = 13
+        GPIO.setup(self.light_pin, GPIO.IN)
         
         # 3. 온습도 센서 (DHT11) 핀 설정
         self.dht_pin = 12  
@@ -80,8 +82,8 @@ class HardwareController:
         # 3. PIR 모션 읽기
         motion = GPIO.input(self.pir_pin)
 
-        # 4. 조도 읽기 (물리 센서를 뺐으므로 항상 0 반환하도록 하드코딩)
-        is_dark = 0
+        # 4. 조도 읽기 (BCM 13 디지털 0/1 신호 읽기)
+        is_dark = GPIO.input(self.light_pin)
 
         return {
             "temperature": self.last_temp,
@@ -92,14 +94,14 @@ class HardwareController:
         }
 
     def control_leds(self, control_dict):
-        """AI 추론 결과에 따른 LED 제어"""
-        GPIO.output(self.led_motion, GPIO.HIGH if control_dict.get("led_motion") else GPIO.LOW)
-        GPIO.output(self.led_dist, GPIO.HIGH if control_dict.get("led_dist") else GPIO.LOW)
-        GPIO.output(self.led_dark, GPIO.HIGH if control_dict.get("led_dark") else GPIO.LOW)
-        GPIO.output(self.led_status, GPIO.HIGH if control_dict.get("led_status") else GPIO.LOW)
+        """AI 추론 결과에 따른 피드백 제어 (감정/돌봄 반응)"""
+        GPIO.output(self.led_action, GPIO.HIGH if control_dict.get("led_action") else GPIO.LOW)
+        GPIO.output(self.led_interact, GPIO.HIGH if control_dict.get("led_interact") else GPIO.LOW)
+        GPIO.output(self.led_sleep, GPIO.HIGH if control_dict.get("led_sleep") else GPIO.LOW)
+        GPIO.output(self.led_care_status, GPIO.HIGH if control_dict.get("led_care_status") else GPIO.LOW)
         
     def cleanup(self):
         """종료 시 자원 해제"""
-        for pin in [self.led_motion, self.led_dist, self.led_dark, self.led_status]:
+        for pin in [self.led_action, self.led_interact, self.led_sleep, self.led_care_status]:
             GPIO.output(pin, GPIO.LOW)
         GPIO.cleanup()

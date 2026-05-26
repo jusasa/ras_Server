@@ -13,9 +13,9 @@
         <header class="flex justify-between items-center mb-8 border-b border-gray-700 pb-4">
             <div>
                 <h1 class="text-3xl font-bold text-blue-400 flex items-center gap-2">
-                    <i data-lucide="cpu"></i> Edge AI 모니터링 시스템
+                    <i data-lucide="heart"></i> AIoT 독거노인 정서교감 및 스마트 돌봄 시스템
                 </h1>
-                <p class="text-gray-400 text-sm mt-1">FastAPI + WebSocket + TFLite Architecture</p>
+                <p class="text-gray-400 text-sm mt-1">FastAPI + WebSocket + TFLite AIoT Care Architecture</p>
             </div>
             <div class="flex items-center gap-2">
                 <div id="ws-status-indicator" class="w-3 h-3 rounded-full bg-red-500"></div>
@@ -25,7 +25,7 @@
 
         <div class="bg-gray-800 rounded-xl p-6 mb-8 border border-gray-700 shadow-lg">
             <h2 class="text-xl font-semibold mb-2 flex items-center gap-2 text-indigo-400">
-                <i data-lucide="brain-circuit"></i> AI 의사결정 상태
+                <i data-lucide="activity"></i> 정서교감 및 돌봄 상태
             </h2>
             <p id="ai-status" class="text-2xl font-bold text-green-400 mt-2">시스템 초기화 중...</p>
         </div>
@@ -33,42 +33,42 @@
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
             <div class="bg-gray-800 p-6 rounded-xl border border-gray-700 shadow flex flex-col items-center">
                 <i data-lucide="thermometer" class="text-red-400 w-8 h-8 mb-3"></i>
-                <h3 class="text-gray-400 text-sm">온도 & 습도</h3>
+                <h3 class="text-gray-400 text-sm">실내 쾌적도</h3>
                 <div class="mt-2 text-2xl font-bold">
                     <span id="temp">--</span>°C / <span id="hum">--</span>%
                 </div>
             </div>
             
             <div class="bg-gray-800 p-6 rounded-xl border border-gray-700 shadow flex flex-col items-center">
-                <i data-lucide="ruler" class="text-blue-400 w-8 h-8 mb-3"></i>
-                <h3 class="text-gray-400 text-sm">근접 거리</h3>
+                <i data-lucide="users" class="text-blue-400 w-8 h-8 mb-3"></i>
+                <h3 class="text-gray-400 text-sm">사용자 상호작용 거리</h3>
                 <div class="mt-2 text-2xl font-bold">
                     <span id="dist">--</span> cm
                 </div>
             </div>
 
             <div class="bg-gray-800 p-6 rounded-xl border border-gray-700 shadow flex flex-col items-center">
-                <i data-lucide="person-standing" class="text-yellow-400 w-8 h-8 mb-3"></i>
-                <h3 class="text-gray-400 text-sm">모션 감지</h3>
+                <i data-lucide="activity" class="text-yellow-400 w-8 h-8 mb-3"></i>
+                <h3 class="text-gray-400 text-sm">생활 반응 상태</h3>
                 <div class="mt-2 text-2xl font-bold" id="motion">대기 중</div>
             </div>
 
             <div class="bg-gray-800 p-6 rounded-xl border border-gray-700 shadow flex flex-col items-center">
-                <i data-lucide="sun-moon" class="text-purple-400 w-8 h-8 mb-3"></i>
-                <h3 class="text-gray-400 text-sm">조도 상태</h3>
+                <i data-lucide="bed" class="text-purple-400 w-8 h-8 mb-3"></i>
+                <h3 class="text-gray-400 text-sm">실내 조도 환경</h3>
                 <div class="mt-2 text-2xl font-bold" id="cds">판독 중</div>
             </div>
         </div>
 
         <div class="bg-gray-800 p-6 rounded-xl border border-gray-700 shadow-lg mb-8">
             <h2 class="text-xl font-semibold mb-4 flex items-center gap-2 text-yellow-400">
-                <i data-lucide="database"></i> AI 학습 데이터 수집 제어
+                <i data-lucide="database"></i> 돌봄 AI 학습 데이터 수집 제어
             </h2>
             <div class="flex flex-col sm:flex-row items-center gap-4">
                 <select id="label-select" class="bg-gray-700 border border-gray-600 text-white text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5 w-full sm:w-auto">
-                    <option value="0">라벨 0 : 정상 (평온한 상태)</option>
-                    <option value="1">라벨 1 : 침입 (모션 및 근접 감지)</option>
-                    <option value="2">라벨 2 : 이상 (기타 예외 상황)</option>
+                    <option value="0">라벨 0 : 안정 상태 (생활 반응 정상)</option>
+                    <option value="1">라벨 1 : 교감 상태 (상호작용 유도)</option>
+                    <option value="2">라벨 2 : 이상 징후 (장시간 무반응/고독 위험)</option>
                 </select>
                 
                 <button id="record-btn" onclick="toggleRecording()" class="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 px-6 rounded-lg transition-colors flex justify-center items-center gap-2">
@@ -81,20 +81,20 @@
         </div>
 
         <h2 class="text-xl font-semibold mb-4 flex items-center gap-2 border-b border-gray-700 pb-2">
-            <i data-lucide="lightbulb"></i> 시스템 피드백 (LED Actuators)
+            <i data-lucide="volume-2"></i> 돌봄 피드백 (Actuators)
         </h2>
         <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div id="led1-card" class="bg-gray-800 p-4 rounded-lg border border-gray-700 text-center transition-colors duration-300">
-                <span class="text-sm font-semibold text-gray-300">LED 1 (모션)</span>
+                <span class="text-sm font-semibold text-gray-300">LED 1 (감정 표현 모터 가동)</span>
             </div>
             <div id="led2-card" class="bg-gray-800 p-4 rounded-lg border border-gray-700 text-center transition-colors duration-300">
-                <span class="text-sm font-semibold text-gray-300">LED 2 (근접)</span>
+                <span class="text-sm font-semibold text-gray-300">LED 2 (스피커 콘텐츠 출력)</span>
             </div>
             <div id="led3-card" class="bg-gray-800 p-4 rounded-lg border border-gray-700 text-center transition-colors duration-300">
-                <span class="text-sm font-semibold text-gray-300">LED 3 (조도)</span>
+                <span class="text-sm font-semibold text-gray-300">LED 3 (취침 환경 조성)</span>
             </div>
             <div id="led4-card" class="bg-gray-800 p-4 rounded-lg border border-gray-700 text-center transition-colors duration-300">
-                <span class="text-sm font-semibold text-gray-300">LED 4 (AI 가동)</span>
+                <span class="text-sm font-semibold text-gray-300">LED 4 (돌봄 시스템 정상 구동)</span>
             </div>
         </div>
     </div>
@@ -193,17 +193,17 @@
                 const ai = data.ai_decision;
                 const aiStatusEl = document.getElementById('ai-status');
                 aiStatusEl.innerText = ai.ai_status;
-                if(ai.ai_status.includes("경고")) {
+                if(ai.ai_status.includes("위험") || ai.ai_status.includes("주의")) {
                     aiStatusEl.classList.replace('text-green-400', 'text-red-500');
                 } else {
                     aiStatusEl.classList.replace('text-red-500', 'text-green-400');
                 }
 
                 // LED 갱신
-                updateLedUI('led1-card', ai.led_motion);
-                updateLedUI('led2-card', ai.led_dist);
-                updateLedUI('led3-card', ai.led_dark);
-                updateLedUI('led4-card', ai.led_status);
+                updateLedUI('led1-card', ai.led_action);
+                updateLedUI('led2-card', ai.led_interact);
+                updateLedUI('led3-card', ai.led_sleep);
+                updateLedUI('led4-card', ai.led_care_status);
 
                 // 백엔드의 현재 수집 상태(current_label)와 UI 동기화
                 // 내가 누르지 않았어도 다른 브라우저 창에서 수집을 켰다면 같이 변경됨

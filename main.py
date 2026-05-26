@@ -133,7 +133,7 @@ async def sensor_ai_loop():
                     current_label
                 ))
                 conn.commit()
-                logging.info(f"[DB 로깅] 라벨 {current_label} 수집 중... (거리: {sensor_data['distance']}cm)")
+                logging.info(f"[DB 로깅] 돌봄 라벨 {current_label} 기록 중... (거리: {sensor_data['distance']}cm)")
 
         except Exception as e:
             logging.error(f"Loop Error: {e}", exc_info=True)
@@ -171,10 +171,10 @@ async def websocket_endpoint(websocket: WebSocket):
 async def start_recording(label: int):
     global current_label
     current_label = label
-    return {"status": "success", "message": f"라벨 {label} 수집 시작"}
+    return {"status": "success", "message": f"돌봄 라벨 {label} 기록 시작"}
 
 @app.get("/api/record/stop")
 async def stop_recording():
     global current_label
     current_label = None
-    return {"status": "success", "message": "수집 중지"}
+    return {"status": "success", "message": "돌봄 기록 중지"}
