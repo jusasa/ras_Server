@@ -69,16 +69,27 @@ class TFLiteEngine:
         
         # 2. AI 모델의 연산 결과는 대시보드 상태창(텍스트)용으로만 활용
         if model_output is not None:
-            probabilities = model_output[0]
-            predicted_class = int(np.argmax(probabilities))
-            confidence = probabilities[predicted_class] * 100
+            # 모델 출력 배열 변환 및 차원 검사
+            output_array = np.array(model_output)
+            
+            # Case 1: 출력 노드가 여러 개여서 확률 분포인 경우 (예: [1, 3] 또는 [3])
+            if output_array.size > 1:
+                probabilities = output_array[0] if output_array.ndim > 1 else output_array
+                predicted_class = int(np.argmax(probabilities))
+                confidence = float(probabilities[predicted_class] * 100)
+                confidence_str = f", 신뢰도: {confidence:.1f}%"
+            # Case 2: 출력 노드가 1개여서 클래스 라벨이 직접 출력되는 경우 (예: [1, 1] 또는 [1])
+            else:
+                val = float(output_array.flat[0])
+                predicted_class = max(0, min(2, int(round(val))))
+                confidence_str = ""
 
             if predicted_class == 0:
-                command["ai_status"] = f"정상 상태 (안정적, 신뢰도: {confidence:.1f}%)"
+                command["ai_status"] = f"정상 상태 (안정적{confidence_str})"
             elif predicted_class == 1:
-                command["ai_status"] = f"활발한 교감 중 (사용자 활동, 신뢰도: {confidence:.1f}%)"
+                command["ai_status"] = f"활발한 교감 중 (사용자 활동{confidence_str})"
             elif predicted_class == 2:
-                command["ai_status"] = f"위험 감지! (장시간 무반응/환경 이상, 신뢰도: {confidence:.1f}%)"
+                command["ai_status"] = f"위험 감지! (장시간 무반응/환경 이상{confidence_str})"
         else:
             # 모델 로드 실패 시 룰 기반 폴백 분류 및 상태 라벨링
             temp = raw_data.get("temperature", 24.0)
