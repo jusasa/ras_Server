@@ -82,8 +82,8 @@ class HardwareController:
         # 3. PIR 모션 읽기
         motion = GPIO.input(self.pir_pin)
 
-        # 조도 센서가 1일 때 어두움(1) 상태가 되도록 설정 (물리 센서 특성 반영)
-        is_dark = 1 if GPIO.input(self.light_pin) else 0
+        # 조도 센서가 0일 때 어두움(1) 상태가 되도록 설정 (들어오는 값 1 = 밝음/LED OFF, 0 = 어두움/LED ON)
+        is_dark = 0 if GPIO.input(self.light_pin) else 1
         return {
             "temperature": self.last_temp,
             "humidity": self.last_hum,
