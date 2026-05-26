@@ -122,10 +122,11 @@ async def sensor_ai_loop():
                 comfort_score = max(0.0, 100.0 - (60.0 - di) * (100.0 / (60.0 - 45.0)))
 
             sensor_data["comfort_score"] = int(round(comfort_score))
+            sensor_data["comfort_index"] = round(di, 1)
 
             # 2. TFLite AI 모델 추론 및 액추에이터 제어 명령 수립
             ai_decision = await asyncio.to_thread(ai_engine.predict, sensor_data)
-            await asyncio.to_thread(hw_controller.control_leds, ai_decision)
+            await asyncio.to_thread(hw_controller.control_leds, ai_decision, sensor_data["is_dark"])
 
             # 3. 실시간 센서 및 AI 상태 추적 로깅 (1초 주기)
             logging.info(

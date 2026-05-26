@@ -63,7 +63,6 @@ class TFLiteEngine:
         command = {
             "led_action": True if raw_data["motion"] == 1 else False,         # 움직임에 반응(감정 표현)
             "led_interact": True if raw_data["distance"] < 30.0 else False,   # 30cm 이내 접근 시 반응(스피커 교감)
-            "led_sleep": True if raw_data["is_dark"] == 1 else False,         # 어두워지면 취침 모드 진입
             "led_care_status": True,                                          # 돌봄 시스템 가동 중
             "ai_status": "데이터 판독 불가 (AI 대기)"
         }

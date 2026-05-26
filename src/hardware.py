@@ -82,9 +82,7 @@ class HardwareController:
         # 3. PIR 모션 읽기
         motion = GPIO.input(self.pir_pin)
 
-        # 4. 조도 읽기 (BCM 13 디지털 0/1 신호 읽기 - 논리 반전 적용)
-        is_dark = 0 if GPIO.input(self.light_pin) else 1
-
+        is_dark = 1 if GPIO.input(self.light_pin) else 0
         return {
             "temperature": self.last_temp,
             "humidity": self.last_hum,
@@ -93,11 +91,11 @@ class HardwareController:
             "is_dark": is_dark
         }
 
-    def control_leds(self, control_dict):
-        """AI 추론 결과에 따른 피드백 제어 (감정/돌봄 반응)"""
+    def control_leds(self, control_dict, is_dark=0):
+        """AI 추론 결과 및 단순 조도 센서 값에 따른 피드백 제어"""
         GPIO.output(self.led_action, GPIO.HIGH if control_dict.get("led_action") else GPIO.LOW)
         GPIO.output(self.led_interact, GPIO.HIGH if control_dict.get("led_interact") else GPIO.LOW)
-        GPIO.output(self.led_sleep, GPIO.HIGH if control_dict.get("led_sleep") else GPIO.LOW)
+        GPIO.output(self.led_sleep, GPIO.LOW if is_dark == 1 else GPIO.HIGH)
         GPIO.output(self.led_care_status, GPIO.HIGH if control_dict.get("led_care_status") else GPIO.LOW)
         
     def cleanup(self):

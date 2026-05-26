@@ -40,6 +40,9 @@
                 <div class="text-xs text-gray-500 mt-1">
                     온도: <span id="temp">--</span>°C / 습도: <span id="hum">--</span>%
                 </div>
+                <div class="text-xs text-gray-400 mt-1">
+                    쾌적지수 (DI): <span id="comfort-index">--</span>
+                </div>
             </div>
             
             <div class="bg-gray-800 p-6 rounded-xl border border-gray-700 shadow flex flex-col items-center">
@@ -181,9 +184,12 @@
                 document.getElementById('hum').innerText = sensors.humidity;
                 document.getElementById('dist').innerText = sensors.distance;
 
-                // 쾌적도 갱신
+                // 쾌적도 및 쾌적지수 갱신
                 const score = sensors.comfort_score !== undefined ? sensors.comfort_score : 100;
                 document.getElementById('comfort-score').innerText = score;
+                
+                const index = sensors.comfort_index !== undefined ? sensors.comfort_index : '--';
+                document.getElementById('comfort-index').innerText = index;
                 
                 const statusEl = document.getElementById('comfort-status');
                 const iconEl = document.getElementById('comfort-icon');
@@ -226,7 +232,8 @@
                 // LED 갱신
                 updateLedUI('led1-card', ai.led_action);
                 updateLedUI('led2-card', ai.led_interact);
-                updateLedUI('led3-card', ai.led_sleep);
+                // LED 3은 AI 추론과 독립적으로 조도 센서 값에 따라 표시 (조도가 1이면 끄고, 0이면 켬)
+                updateLedUI('led3-card', sensors.is_dark === 0);
                 updateLedUI('led4-card', ai.led_care_status);
 
                 // 백엔드의 현재 수집 상태(current_label)와 UI 동기화
