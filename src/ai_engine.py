@@ -80,8 +80,23 @@ class TFLiteEngine:
             elif predicted_class == 2:
                 command["ai_status"] = f"위험 감지! (장시간 무반응/환경 이상, 신뢰도: {confidence:.1f}%)"
         else:
-            # 모델 로드 실패 시 폴백
-            command["ai_status"] = "돌봄 모니터링 중 (모델 오프라인)"
+            # 모델 로드 실패 시 룰 기반 폴백 분류 및 상태 라벨링
+            temp = raw_data.get("temperature", 24.0)
+            hum = raw_data.get("humidity", 50.0)
+            dist = raw_data.get("distance", 100.0)
+            motion = raw_data.get("motion", 0)
+
+            # 1) 위험 상태 (온습도가 임계값 범위를 벗어나거나, 사용자가 부재/장시간 무반응인 경우)
+            if temp >= 35.0 or temp <= 10.0 or hum >= 80.0 or hum <= 20.0:
+                command["ai_status"] = "위험 감지! (환경 이상 [폴백 룰])"
+            elif dist >= 150.0 and motion == 0:
+                command["ai_status"] = "위험 감지! (장시간 무반응 의심 [폴백 룰])"
+            # 2) 교감 상태 (사용자가 센서와 인접해 있으며 모션이 감지된 경우)
+            elif dist < 50.0 and motion == 1:
+                command["ai_status"] = "활발한 교감 중 (사용자 활동 [폴백 룰])"
+            # 3) 정상/안정 상태
+            else:
+                command["ai_status"] = "정상 상태 (안정적 [폴백 룰])"
                 
         return command
     def predict(self, raw_sensor_data):
