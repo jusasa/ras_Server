@@ -94,12 +94,13 @@ async def sensor_ai_loop():
     while True:
         try:
             try:
+                # 1. 비동기 하드웨어 센서 판독 (2초 타임아웃 방어)
                 sensor_data = await asyncio.wait_for(
                     asyncio.to_thread(hw_controller.read_sensors),
                     timeout=2.0
                 )
             except asyncio.TimeoutError:
-                logging.warning("[하드웨어 경고] 센서 무응답(타임아웃)! 배선을 확인하세요. 기본값을 반환합니다.")
+                logging.warning("[하드웨어 경고] 센서 무응답(타임아웃)! 배선 혹은 전원을 확인하세요. 기본 안전값으로 대체합니다.")
                 sensor_data = {
                     "temperature": 0.0,
                     "humidity": 0.0,
@@ -108,9 +109,21 @@ async def sensor_ai_loop():
                     "is_dark": 0
                 }
 
+            # 2. TFLite AI 모델 추론 및 액추에이터 제어 명령 수립
             ai_decision = await asyncio.to_thread(ai_engine.predict, sensor_data)
             await asyncio.to_thread(hw_controller.control_leds, ai_decision)
 
+            # 3. 실시간 센서 및 AI 상태 추적 로깅 (1초 주기)
+            logging.info(
+                f"[센서 추적] 온도: {sensor_data['temperature']}°C | "
+                f"습도: {sensor_data['humidity']}% | "
+                f"거리: {sensor_data['distance']}cm | "
+                f"모션: {sensor_data['motion']} | "
+                f"조도: {sensor_data['is_dark']} | "
+                f"상태: {ai_decision['ai_status']}"
+            )
+
+            # 4. 실시간 웹 브로드캐스팅
             payload = {
                 "sensors": sensor_data,
                 "ai_decision": ai_decision,
@@ -118,6 +131,7 @@ async def sensor_ai_loop():
             }
             await ws_manager.broadcast(payload)
 
+            # 5. 수집 모드 시 DB 기록
             if current_label is not None:
                 current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
                 cursor.execute('''
@@ -133,10 +147,10 @@ async def sensor_ai_loop():
                     current_label
                 ))
                 conn.commit()
-                logging.info(f"[DB 로깅] 돌봄 라벨 {current_label} 기록 중... (거리: {sensor_data['distance']}cm)")
+                logging.info(f"[DB 로깅] 돌봄 라벨 {current_label} 기록 완료 -> (거리: {sensor_data['distance']}cm)")
 
         except Exception as e:
-            logging.error(f"Loop Error: {e}", exc_info=True)
+            logging.error(f"[메인 루프 에러] 시스템 예외 발생: {e}", exc_info=True)
 
         await asyncio.sleep(1)
 
