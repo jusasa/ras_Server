@@ -10,7 +10,7 @@ def export_db_to_csv():
     cursor = conn.cursor()
     
     # 조도센서를 제외한 핵심 feature 4개와 정답 라벨 추출
-    query = "SELECT temperature, humidity, distance, motion, label FROM sensor_logs"
+    query = "SELECT temperature, humidity, distance, motion, label FROM care_logs"
     cursor.execute(query)
     rows = cursor.fetchall()
     

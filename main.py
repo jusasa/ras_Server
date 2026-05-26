@@ -52,7 +52,7 @@ def init_db():
     conn = sqlite3.connect(DB_NAME)
     cursor = conn.cursor()
     cursor.execute('''
-        CREATE TABLE IF NOT EXISTS sensor_logs (
+        CREATE TABLE IF NOT EXISTS care_logs (
             log_id INTEGER PRIMARY KEY AUTOINCREMENT,
             timestamp TEXT,
             temperature REAL,
@@ -121,7 +121,7 @@ async def sensor_ai_loop():
             if current_label is not None:
                 current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
                 cursor.execute('''
-                    INSERT INTO sensor_logs (timestamp, temperature, humidity, distance, motion, is_dark, label)
+                    INSERT INTO care_logs (timestamp, temperature, humidity, distance, motion, is_dark, label)
                     VALUES (?, ?, ?, ?, ?, ?, ?)
                 ''', (
                     current_time,
