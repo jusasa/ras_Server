@@ -32,16 +32,13 @@
 
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
             <div class="bg-gray-800 p-6 rounded-xl border border-gray-700 shadow flex flex-col items-center">
-                <i data-lucide="thermometer" class="text-cyan-400 w-8 h-8 mb-3" id="comfort-icon"></i>
-                <h3 class="text-gray-400 text-sm">실내 쾌적도</h3>
+                <i data-lucide="thermometer" class="text-cyan-400 w-8 h-8 mb-3" id="discomfort-icon"></i>
+                <h3 class="text-gray-400 text-sm">실내 불쾌지수 (DI)</h3>
                 <div class="mt-2 text-2xl font-bold">
-                    <span id="comfort-score">--</span>% (<span id="comfort-status" class="text-cyan-400">쾌적</span>)
+                    <span id="discomfort-index">--</span> (<span id="discomfort-status" class="text-cyan-400">쾌적</span>)
                 </div>
                 <div class="text-xs text-gray-500 mt-1">
                     온도: <span id="temp">--</span>°C / 습도: <span id="hum">--</span>%
-                </div>
-                <div class="text-xs text-gray-400 mt-1">
-                    쾌적지수 (DI): <span id="comfort-index">--</span>
                 </div>
             </div>
             
@@ -184,28 +181,35 @@
                 document.getElementById('hum').innerText = sensors.humidity;
                 document.getElementById('dist').innerText = sensors.distance;
 
-                // 쾌적도 및 쾌적지수 갱신
-                const score = sensors.comfort_score !== undefined ? sensors.comfort_score : 100;
-                document.getElementById('comfort-score').innerText = score;
+                // 불쾌지수(DI) 갱신 및 상태 표시
+                const di = sensors.discomfort_index !== undefined ? sensors.discomfort_index : '--';
+                document.getElementById('discomfort-index').innerText = di;
                 
-                const index = sensors.comfort_index !== undefined ? sensors.comfort_index : '--';
-                document.getElementById('comfort-index').innerText = index;
+                const statusEl = document.getElementById('discomfort-status');
+                const iconEl = document.getElementById('discomfort-icon');
                 
-                const statusEl = document.getElementById('comfort-status');
-                const iconEl = document.getElementById('comfort-icon');
-                
-                if (score >= 80) {
-                    statusEl.innerText = "쾌적";
-                    statusEl.className = "text-cyan-400";
-                    iconEl.className = "text-cyan-400 w-8 h-8 mb-3";
-                } else if (score >= 50) {
-                    statusEl.innerText = "보통";
-                    statusEl.className = "text-yellow-400";
-                    iconEl.className = "text-yellow-400 w-8 h-8 mb-3";
+                if (di !== '--') {
+                    if (di < 68) {
+                        statusEl.innerText = "쾌적";
+                        statusEl.className = "text-cyan-400";
+                        iconEl.className = "text-cyan-400 w-8 h-8 mb-3";
+                    } else if (di < 75) {
+                        statusEl.innerText = "보통";
+                        statusEl.className = "text-green-400";
+                        iconEl.className = "text-green-400 w-8 h-8 mb-3";
+                    } else if (di < 80) {
+                        statusEl.innerText = "불쾌";
+                        statusEl.className = "text-yellow-400";
+                        iconEl.className = "text-yellow-400 w-8 h-8 mb-3";
+                    } else {
+                        statusEl.innerText = "매우 불쾌";
+                        statusEl.className = "text-red-500";
+                        iconEl.className = "text-red-500 w-8 h-8 mb-3";
+                    }
                 } else {
-                    statusEl.innerText = "불쾌";
-                    statusEl.className = "text-red-500";
-                    iconEl.className = "text-red-500 w-8 h-8 mb-3";
+                    statusEl.innerText = "판독 중";
+                    statusEl.className = "text-gray-400";
+                    iconEl.className = "text-gray-400 w-8 h-8 mb-3";
                 }
                 
                 const motionEl = document.getElementById('motion');
