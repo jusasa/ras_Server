@@ -82,8 +82,8 @@ class HardwareController:
         # 3. PIR 모션 읽기
         motion = GPIO.input(self.pir_pin)
 
-        # 4. 조도 읽기 (BCM 13 디지털 0/1 신호 읽기)
-        is_dark = GPIO.input(self.light_pin)
+        # 4. 조도 읽기 (BCM 13 디지털 0/1 신호 읽기 - 논리 반전 적용)
+        is_dark = 0 if GPIO.input(self.light_pin) else 1
 
         return {
             "temperature": self.last_temp,

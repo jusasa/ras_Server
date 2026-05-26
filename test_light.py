@@ -16,9 +16,10 @@ def main():
     
     try:
         while True:
-            val = GPIO.input(LIGHT_PIN)
+            raw_val = GPIO.input(LIGHT_PIN)
+            val = 0 if raw_val else 1  # 논리 반전 적용
             status = "어두움 (1)" if val == 1 else "밝음 (0)"
-            print(f"[{time.strftime('%H:%M:%S')}] 센서 신호: {val} -> {status}", end="\r")
+            print(f"[{time.strftime('%H:%M:%S')}] 원시 신호: {raw_val} -> 반전 적용: {val} ({status})", end="\r")
             sys.stdout.flush()
             time.sleep(0.5)
     except KeyboardInterrupt:
