@@ -91,33 +91,47 @@ class HardwareController:
                 "timestamp": time.time()
             }
             
+        # 각 센서별 개별 예외처리 적용 (하나가 실패해도 다른 센서는 정상 계측되도록 보장)
+        
+        # 1. 가스 센서 계측
         try:
             gas = self.read_gas()
-            humidity, temperature = Adafruit_DHT.read_retry(self.dht_sensor, self.dht_pin)
-            distance = self.ultrasonic.distance * 100 # cm 단위 변환
-            is_closed = self.limit_switch.is_pressed # True면 닫힘, False면 열림
-            
-            if humidity is None or temperature is None:
-                humidity, temperature = 0, 0
-
-            return {
-                "gas": gas,
-                "temperature": temperature,
-                "humidity": humidity,
-                "distance_cm": round(distance, 1),
-                "is_closed": is_closed,
-                "timestamp": time.time()
-            }
         except Exception as e:
-            logger.error(f"[센서 계측 실패] 기본 안전 데이터 반환. 에러: {e}")
-            return {
-                "gas": 150,
-                "temperature": 23.0,
-                "humidity": 45.0,
-                "distance_cm": 25.0,
-                "is_closed": True,
-                "timestamp": time.time()
-            }
+            logger.warning(f"[MQ-6 가스 센서 오류] 가스 값을 읽을 수 없습니다: {e}")
+            gas = 120
+            
+        # 2. 온습도 센서 계측 (라즈베리파이 4/5 감지 오류인 Unknown platform 방어)
+        humidity, temperature = 0, 0
+        try:
+            h, t = Adafruit_DHT.read_retry(self.dht_sensor, self.dht_pin)
+            if h is not None and t is not None:
+                humidity, temperature = h, t
+        except Exception as e:
+            logger.warning(f"[DHT11 온습도 센서 계측 오류] 온습도 센서 읽기 실패 ({e})")
+
+        # 3. 초음파 거리 센서 계측 (DistanceSensorNoEcho 경고 방어)
+        try:
+            # 기본적으로 distance 프로퍼티 호출 시 값이 반환됨
+            distance = self.ultrasonic.distance * 100
+        except Exception as e:
+            logger.warning(f"[HC-SR04 초음파 센서 계측 오류] 거리 읽기 실패 ({e})")
+            distance = 30.0 # 센서 고장 시의 기본 안전 거리 (안전 범주)
+
+        # 4. 리미트 스위치 계측
+        try:
+            is_closed = self.limit_switch.is_pressed
+        except Exception as e:
+            logger.warning(f"[Limit Switch 오류] 스위치 상태를 읽을 수 없습니다: {e}")
+            is_closed = True
+
+        return {
+            "gas": gas,
+            "temperature": temperature,
+            "humidity": humidity,
+            "distance_cm": round(distance, 1),
+            "is_closed": is_closed,
+            "timestamp": time.time()
+        }
 
     def set_status_led(self, status):
         """status: 'NORMAL', 'WARNING', 'DANGER'"""
