@@ -51,8 +51,7 @@ term-project/
 │   ├── db_to_csv.py       # SQLite DB 데이터를 CSV로 추출하는 스크립트 (학습 데이터 생성용)
 │   └── generate_dataset.py # 학습용 가상 센서 데이터를 생성하여 DB에 주입하는 스크립트
 └── tests/
-    ├── test_error.py      # 에러 예외 처리 및 백엔드 안정성 시뮬레이션 테스트
-    └── test_light.py      # 디지털 조도 센서(BCM 13) 입력 디버깅 테스트
+    └── test_error.py      # 에러 예외 처리 및 백엔드 안정성 시뮬레이션 테스트
 ```
 
 ## ⚙️ 실행 및 테스트 방법 (How to Run & Test)
@@ -71,8 +70,4 @@ term-project/
 * **에러 예외 처리 테스트 (QA 시뮬레이터):**
   ```bash
   python tests/test_error.py
-  ```
-* **조도 센서 디버깅 테스트:**
-  ```bash
-  python tests/test_light.py
   ```
