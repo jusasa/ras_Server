@@ -43,13 +43,13 @@ class TFLiteEngine:
     def _preprocess(self, raw_data):
         """
         센서 데이터를 모델 입력 규격에 맞게 전처리합니다.
-        모델의 예상 배치 차원(예: 16)에 대응하기 위해 입력을 반복 복제하여 패딩합니다.
+        [gas, temperature, humidity, distance_cm] 4가지 피처를 추출합니다.
         """
         features = [
-            raw_data["temperature"],  # 피처 1
-            raw_data["humidity"],     # 피처 2
-            raw_data["distance"],     # 피처 3
-            raw_data["motion"]        # 피처 4
+            raw_data.get("gas", 0.0),
+            raw_data.get("temperature", 0.0),
+            raw_data.get("humidity", 0.0),
+            raw_data.get("distance_cm", 0.0)
         ]
         
         # 모델의 예상 배치 크기 확인 (예: ValueError Dimension mismatch 방어)
@@ -66,20 +66,18 @@ class TFLiteEngine:
 
     def _postprocess(self, model_output, raw_data):
         """
-        AI 모델 추론 결과는 텍스트(상태)로만 보여주고,
-        하드웨어 제어는 순수하게 센서 원시값(raw_data)에 즉각 반응하도록 분리합니다.
+        AI 모델 추론 결과를 분석하여 Smart Eco-Bin의 상태와 제어 명령을 결정합니다.
         """
-        # 1. 센서 원시값에 따른 1:1 즉각 하드웨어 제어 (돌봄 교감 반응)
+        # 기본 제어 명령 구조 (정상 상태 디폴트)
         command = {
-            "led_action": True if raw_data["motion"] == 1 else False,         # 움직임에 반응(감정 표현)
-            "led_interact": True if raw_data["distance"] < 30.0 else False,   # 30cm 이내 접근 시 반응(스피커 교감)
-            "led_care_status": True,                                          # 돌봄 시스템 가동 중
+            "status": "NORMAL",        # 'NORMAL', 'WARNING', 'DANGER'
+            "led_action": False,       # LED 4 (팬/서보 작동 표시) 켬 여부
+            "run_fan": False,          # 환기 서보모터 구동 필요 여부
             "ai_status": "데이터 판독 불가 (AI 대기)"
         }
         
-        # 2. AI 모델의 연산 결과는 대시보드 상태창(텍스트)용으로만 활용
+        # 1. AI 모델의 연산 결과는 대시보드 상태창(텍스트) 및 하드웨어 제어 결정에 활용
         if model_output is not None:
-            # 모델 출력 배열 변환 및 차원 검사
             output_array = np.array(model_output)
             
             # Case 1: 출력 노드가 여러 개여서 확률 분포인 경우 (예: [1, 3] 또는 [3])
@@ -87,39 +85,55 @@ class TFLiteEngine:
                 probabilities = output_array[0] if output_array.ndim > 1 else output_array
                 predicted_class = int(np.argmax(probabilities))
                 confidence = float(probabilities[predicted_class] * 100)
-                confidence_str = f", 신뢰도: {confidence:.1f}%"
-            # Case 2: 출력 노드가 1개여서 클래스 라벨이 직접 출력되는 경우 (예: [1, 1] 또는 [1])
+                confidence_str = f" (신뢰도: {confidence:.1f}%)"
+            # Case 2: 출력 노드가 1개여서 클래스 라벨이 직접 출력되는 경우
             else:
                 val = float(output_array.flat[0])
                 predicted_class = max(0, min(2, int(round(val))))
                 confidence_str = ""
 
             if predicted_class == 0:
-                command["ai_status"] = f"정상 상태 (안정적{confidence_str})"
+                command["status"] = "NORMAL"
+                command["led_action"] = False
+                command["run_fan"] = False
+                command["ai_status"] = f"정상 상태{confidence_str}"
             elif predicted_class == 1:
-                command["ai_status"] = f"활발한 교감 중 (사용자 활동{confidence_str})"
+                command["status"] = "WARNING"
+                command["led_action"] = False
+                command["run_fan"] = False
+                command["ai_status"] = f"주의 상태 (부패 위험 가능성){confidence_str}"
             elif predicted_class == 2:
-                command["ai_status"] = f"위험 감지! (장시간 무반응/환경 이상{confidence_str})"
+                command["status"] = "DANGER"
+                command["led_action"] = True
+                command["run_fan"] = True
+                command["ai_status"] = f"위험 감지! (부패 및 악취 위험 차단 가동){confidence_str}"
         else:
             # 모델 로드 실패 시 룰 기반 폴백 분류 및 상태 라벨링
+            gas = raw_data.get("gas", 0.0)
             temp = raw_data.get("temperature", 24.0)
-            hum = raw_data.get("humidity", 50.0)
-            dist = raw_data.get("distance", 100.0)
-            motion = raw_data.get("motion", 0)
+            dist = raw_data.get("distance_cm", 50.0)
 
-            # 1) 위험 상태 (온습도가 임계값 범위를 벗어나거나, 사용자가 부재/장시간 무반응인 경우)
-            if temp >= 35.0 or temp <= 10.0 or hum >= 80.0 or hum <= 20.0:
-                command["ai_status"] = "위험 감지! (환경 이상 [폴백 룰])"
-            elif dist >= 150.0 and motion == 0:
-                command["ai_status"] = "위험 감지! (장시간 무반응 의심 [폴백 룰])"
-            # 2) 교감 상태 (사용자가 센서와 인접해 있으며 모션이 감지된 경우)
-            elif dist < 50.0 and motion == 1:
-                command["ai_status"] = "활발한 교감 중 (사용자 활동 [폴백 룰])"
+            # 1) 위험 상태 (가스 농도가 임계값 이상이거나 온도가 매우 높거나 쓰레기 적재거리가 매우 가까울 때)
+            if gas >= 600.0 or temp >= 33.0 or dist <= 10.0:
+                command["status"] = "DANGER"
+                command["led_action"] = True
+                command["run_fan"] = True
+                command["ai_status"] = "위험 감지! (센서 임계치 초과 [폴백 룰])"
+            # 2) 주의 상태
+            elif gas >= 300.0 or temp >= 28.0 or dist <= 25.0:
+                command["status"] = "WARNING"
+                command["led_action"] = False
+                command["run_fan"] = False
+                command["ai_status"] = "주의 상태 (악취 및 부패 우려 [폴백 룰])"
             # 3) 정상/안정 상태
             else:
+                command["status"] = "NORMAL"
+                command["led_action"] = False
+                command["run_fan"] = False
                 command["ai_status"] = "정상 상태 (안정적 [폴백 룰])"
                 
         return command
+
     def predict(self, raw_sensor_data):
         """main.py 백엔드 룹에서 주기적으로 호출하는 실시간 AI 추론 API"""
         input_tensor = self._preprocess(raw_sensor_data)

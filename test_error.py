@@ -16,13 +16,13 @@ async def simulate_hardware_timeout():
         
         # 시스템 다운을 막기 위한 폴백(안전) 데이터 반환 확인
         fallback_data = {
+            "gas": 0,
             "temperature": 0.0,
             "humidity": 0.0,
-            "distance": 200.0,
-            "motion": 0,
-            "is_dark": 0
+            "distance_cm": 200.0,
+            "is_closed": False
         }
-        print(f"✔️ 메인 루프 생존 확인 -> 폴백 데이터 정상 반환됨: {fallback_data['distance']}cm")
+        print(f"✔️ 메인 루프 생존 확인 -> 폴백 데이터 정상 반환됨: {fallback_data['distance_cm']}cm")
 
 def simulate_ai_load_error():
     print("\n[QA 테스트 2] TFLite 모델 파일 누락/손상 방어 로직")
@@ -46,8 +46,8 @@ def simulate_ai_inference_error():
     
     # 정상적인 센서 데이터 입력
     raw_sensor_data = {
-        "temperature": 25.0, "humidity": 60.0, 
-        "distance": 150.0, "motion": 0, "is_dark": 0
+        "gas": 350, "temperature": 25.0, "humidity": 60.0, 
+        "distance_cm": 15.0, "is_closed": True
     }
     
     # predict() 호출 시 내부의 try-except가 에러를 잡고 안전 모드로 전환하는지 확인
@@ -56,7 +56,7 @@ def simulate_ai_inference_error():
 
 async def main():
     print("============================================================")
-    print(" 🛠️ AIoT 스마트 돌봄 시스템 - 에러 예외 처리(QA) 시뮬레이터 가동")
+    print(" 🛠️ Smart Eco-Bin 시스템 - 에러 예외 처리(QA) 시뮬레이터 가동")
     print("============================================================")
     
     # 1. 모델 로드 에러 테스트

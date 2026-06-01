@@ -3,129 +3,251 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AIoT 스마트 모니터링</title>
+    <title>Smart Eco-Bin 관제 시스템</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Noto+Sans+KR:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Outfit', 'Noto Sans KR', sans-serif;
+        }
+        .glass-panel {
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        .neon-glow-green {
+            box-shadow: 0 0 15px rgba(34, 197, 94, 0.3);
+        }
+        .neon-glow-yellow {
+            box-shadow: 0 0 15px rgba(234, 179, 8, 0.3);
+        }
+        .neon-glow-red {
+            box-shadow: 0 0 15px rgba(239, 68, 68, 0.3);
+        }
+        .neon-glow-blue {
+            box-shadow: 0 0 15px rgba(59, 130, 246, 0.3);
+        }
+    </style>
 </head>
-<body class="bg-gray-900 text-white font-sans antialiased">
-    <div class="container mx-auto p-6 max-w-5xl">
+<body class="bg-slate-950 text-slate-100 font-sans min-h-screen antialiased selection:bg-blue-500 selection:text-white">
+    <div class="container mx-auto p-4 sm:p-6 max-w-5xl">
         
-        <header class="flex justify-between items-center mb-8 border-b border-gray-700 pb-4">
+        <!-- Header -->
+        <header class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-8 pb-5 border-b border-slate-800 gap-4">
             <div>
-                <h1 class="text-3xl font-bold text-blue-400 flex items-center gap-2">
-                    <i data-lucide="heart"></i> AIoT 독거노인 정서교감 및 스마트 돌봄 시스템
+                <h1 class="text-3xl font-extrabold tracking-tight bg-gradient-to-r from-emerald-400 via-teal-400 to-blue-500 bg-clip-text text-transparent flex items-center gap-3">
+                    <i data-lucide="trash-2" class="text-emerald-400 w-8 h-8"></i> Smart Eco-Bin
                 </h1>
-                <p class="text-gray-400 text-sm mt-1">FastAPI + WebSocket + TFLite AIoT Care Architecture</p>
+                <p class="text-slate-400 text-sm mt-1">다중 센서 융합 및 엣지 컴퓨팅 기반 밀폐공간 위생 관제 플랫폼</p>
             </div>
-            <div class="flex items-center gap-2">
-                <div id="ws-status-indicator" class="w-3 h-3 rounded-full bg-red-500"></div>
-                <span id="ws-status-text" class="text-sm text-gray-300">연결 끊김</span>
+            <div class="flex items-center gap-3 glass-panel px-4 py-2 rounded-full self-stretch sm:self-auto justify-between sm:justify-start">
+                <div class="flex items-center gap-2">
+                    <div id="ws-status-indicator" class="w-3 h-3 rounded-full bg-red-500 transition-all duration-500"></div>
+                    <span id="ws-status-text" class="text-xs font-semibold text-slate-300">연결 대기 중</span>
+                </div>
             </div>
         </header>
 
-        <div class="bg-gray-800 rounded-xl p-6 mb-8 border border-gray-700 shadow-lg">
-            <h2 class="text-xl font-semibold mb-2 flex items-center gap-2 text-indigo-400">
-                <i data-lucide="activity"></i> 정서교감 및 돌봄 상태
-            </h2>
-            <p id="ai-status" class="text-2xl font-bold text-green-400 mt-2">시스템 초기화 중...</p>
-        </div>
-
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-            <div class="bg-gray-800 p-6 rounded-xl border border-gray-700 shadow flex flex-col items-center">
-                <i data-lucide="thermometer" class="text-cyan-400 w-8 h-8 mb-3" id="discomfort-icon"></i>
-                <h3 class="text-gray-400 text-sm">실내 불쾌지수 (DI)</h3>
-                <div class="mt-2 text-2xl font-bold">
-                    <span id="discomfort-index">--</span> (<span id="discomfort-status" class="text-cyan-400">쾌적</span>)
+        <!-- Main Risk & Lid Panel -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <!-- AI 부패 위험도 추론 -->
+            <div class="md:col-span-2 glass-panel rounded-2xl p-6 relative overflow-hidden transition-all duration-300 hover:border-slate-700 shadow-xl flex flex-col justify-between min-h-[160px]">
+                <div class="z-10">
+                    <h2 class="text-sm font-medium uppercase tracking-wider text-slate-400 flex items-center gap-2">
+                        <i data-lucide="brain" class="text-teal-400 w-4 h-4"></i> AI 실시간 부패 위험도 판독
+                    </h2>
+                    <p id="ai-status" class="text-3xl font-black text-emerald-400 mt-4 tracking-tight drop-shadow-md">
+                        시스템 분석 중...
+                    </p>
                 </div>
-                <div class="text-xs text-gray-500 mt-1">
-                    온도: <span id="temp">--</span>°C / 습도: <span id="hum">--</span>%
+                <div class="absolute right-6 bottom-6 opacity-10">
+                    <i data-lucide="activity" class="w-24 h-24 text-white"></i>
                 </div>
             </div>
             
-            <div class="bg-gray-800 p-6 rounded-xl border border-gray-700 shadow flex flex-col items-center">
-                <i data-lucide="users" class="text-blue-400 w-8 h-8 mb-3"></i>
-                <h3 class="text-gray-400 text-sm">사용자 상호작용 거리</h3>
-                <div class="mt-2 text-2xl font-bold">
-                    <span id="dist">--</span> cm
+            <!-- 리밋 스위치 (뚜껑 개폐 여부) -->
+            <div id="lid-panel" class="glass-panel rounded-2xl p-6 transition-all duration-300 hover:border-slate-700 shadow-xl flex flex-col justify-between">
+                <div>
+                    <h2 class="text-sm font-medium uppercase tracking-wider text-slate-400 flex items-center gap-2">
+                        <i data-lucide="door-closed" id="lid-title-icon" class="text-indigo-400 w-4 h-4"></i> 수거통 뚜껑 상태
+                    </h2>
+                    <div class="flex items-center gap-3 mt-4">
+                        <span id="lid-status-badge" class="px-3 py-1 rounded-full text-xs font-bold bg-slate-800 text-slate-300">
+                            판독 중
+                        </span>
+                    </div>
                 </div>
-            </div>
-
-            <div class="bg-gray-800 p-6 rounded-xl border border-gray-700 shadow flex flex-col items-center">
-                <i data-lucide="activity" class="text-yellow-400 w-8 h-8 mb-3"></i>
-                <h3 class="text-gray-400 text-sm">생활 반응 상태</h3>
-                <div class="mt-2 text-2xl font-bold" id="motion">대기 중</div>
-            </div>
-
-            <div class="bg-gray-800 p-6 rounded-xl border border-gray-700 shadow flex flex-col items-center">
-                <i data-lucide="bed" class="text-purple-400 w-8 h-8 mb-3"></i>
-                <h3 class="text-gray-400 text-sm">실내 조도 환경</h3>
-                <div class="mt-2 text-2xl font-bold" id="cds">판독 중</div>
+                <p id="lid-status-text" class="text-lg font-semibold mt-2 text-slate-400">데이터 수집 대기</p>
             </div>
         </div>
 
-        <div class="bg-gray-800 p-6 rounded-xl border border-gray-700 shadow-lg mb-8">
-            <h2 class="text-xl font-semibold mb-4 flex items-center gap-2 text-yellow-400">
-                <i data-lucide="database"></i> 돌봄 AI 학습 데이터 수집 제어
+        <!-- Sensor Dashboard Grid -->
+        <h2 class="text-lg font-bold tracking-tight text-slate-300 mb-4 flex items-center gap-2">
+            <i data-lucide="gauge" class="text-slate-400 w-5 h-5"></i> 실시간 계측 센서 데이터 (Sensors)
+        </h2>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <!-- 1. 부패 가스 (MQ-6) -->
+            <div class="glass-panel p-5 rounded-2xl flex flex-col justify-between hover:border-slate-700 transition-all duration-300">
+                <div class="flex justify-between items-start">
+                    <span class="text-slate-400 text-xs font-semibold">부패 가스 (MQ-6)</span>
+                    <span class="p-2 rounded-xl bg-amber-500/10 text-amber-400"><i data-lucide="wind" class="w-5 h-5"></i></span>
+                </div>
+                <div class="mt-4">
+                    <div class="text-3xl font-extrabold tracking-tight" id="gas-val">--</div>
+                    <span class="text-xs text-slate-500 mt-1 block">아날로그 측정치 (12-bit ADC)</span>
+                </div>
+            </div>
+            
+            <!-- 2. 적재도 (HC-SR04) -->
+            <div class="glass-panel p-5 rounded-2xl flex flex-col justify-between hover:border-slate-700 transition-all duration-300">
+                <div class="flex justify-between items-start">
+                    <span class="text-slate-400 text-xs font-semibold">쓰레기 적재율</span>
+                    <span class="p-2 rounded-xl bg-emerald-500/10 text-emerald-400"><i data-lucide="bar-chart-3" class="w-5 h-5"></i></span>
+                </div>
+                <div class="mt-4">
+                    <div class="text-3xl font-extrabold tracking-tight flex items-baseline gap-1">
+                        <span id="fill-percent">--</span><span class="text-lg font-normal text-slate-400">%</span>
+                    </div>
+                    <span class="text-xs text-slate-500 mt-1 block">남은 공간 높이: <span id="dist-val">--</span>cm</span>
+                </div>
+            </div>
+
+            <!-- 3. 내부 온도 (DHT11) -->
+            <div class="glass-panel p-5 rounded-2xl flex flex-col justify-between hover:border-slate-700 transition-all duration-300">
+                <div class="flex justify-between items-start">
+                    <span class="text-slate-400 text-xs font-semibold">내부 온도</span>
+                    <span class="p-2 rounded-xl bg-rose-500/10 text-rose-400"><i data-lucide="thermometer" class="w-5 h-5"></i></span>
+                </div>
+                <div class="mt-4">
+                    <div class="text-3xl font-extrabold tracking-tight flex items-baseline gap-1">
+                        <span id="temp-val">--</span><span class="text-lg font-normal text-slate-400">°C</span>
+                    </div>
+                    <span class="text-xs text-slate-500 mt-1 block">부패 속도 가속화 지표</span>
+                </div>
+            </div>
+
+            <!-- 4. 내부 습도 (DHT11) -->
+            <div class="glass-panel p-5 rounded-2xl flex flex-col justify-between hover:border-slate-700 transition-all duration-300">
+                <div class="flex justify-between items-start">
+                    <span class="text-slate-400 text-xs font-semibold">내부 습도</span>
+                    <span class="p-2 rounded-xl bg-sky-500/10 text-sky-400"><i data-lucide="droplets" class="w-5 h-5"></i></span>
+                </div>
+                <div class="mt-4">
+                    <div class="text-3xl font-extrabold tracking-tight flex items-baseline gap-1">
+                        <span id="hum-val">--</span><span class="text-lg font-normal text-slate-400">%</span>
+                    </div>
+                    <span class="text-xs text-slate-500 mt-1 block">미생물 번식 최적도 지표</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- ML Training Data Acquisition Control -->
+        <div class="glass-panel p-6 rounded-2xl mb-8 hover:border-slate-700 transition-all duration-300">
+            <h2 class="text-lg font-bold tracking-tight text-slate-300 mb-4 flex items-center gap-2">
+                <i data-lucide="database" class="text-emerald-400 w-5 h-5"></i> Edge AI 학습용 데이터셋 수집 제어
             </h2>
-            <div class="flex flex-col sm:flex-row items-center gap-4">
-                <select id="label-select" class="bg-gray-700 border border-gray-600 text-white text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5 w-full sm:w-auto">
-                    <option value="0">라벨 0 : 안정 상태 (생활 반응 정상)</option>
-                    <option value="1">라벨 1 : 교감 상태 (상호작용 유도)</option>
-                    <option value="2">라벨 2 : 이상 징후 (장시간 무반응/고독 위험)</option>
+            <p class="text-sm text-slate-400 mb-5">수거통 뚜껑이 완전히 닫힌 상태에서만 학습 데이터가 DB에 기록됩니다.</p>
+            <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-4">
+                <select id="label-select" class="bg-slate-800 border border-slate-700 text-slate-200 text-sm rounded-xl focus:ring-emerald-500 focus:border-emerald-500 block p-3 w-full sm:w-auto font-medium">
+                    <option value="0">라벨 0 : 정상 상태 (부패도 낮음 / 쾌적함)</option>
+                    <option value="1">라벨 1 : 주의 상태 (약간의 악취 / 부패 전조)</option>
+                    <option value="2">라벨 2 : 위험 상태 (고농도 가스 / 환기 필요)</option>
                 </select>
                 
-                <button id="record-btn" onclick="toggleRecording()" class="w-full sm:w-auto bg-blue-600 hover:bg-blue-700 text-white font-bold py-2.5 px-6 rounded-lg transition-colors flex justify-center items-center gap-2">
+                <button id="record-btn" onclick="toggleRecording()" class="w-full sm:w-auto bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold py-3 px-6 rounded-xl transition-all duration-200 flex justify-center items-center gap-2 active:scale-[0.98] shadow-lg shadow-emerald-950/40">
                     <i data-lucide="play-circle" id="btn-icon" class="w-5 h-5"></i>
                     <span id="btn-text">수집 시작</span>
                 </button>
                 
-                <span id="record-status" class="text-sm font-semibold text-gray-400 mt-2 sm:mt-0">현재 대기 중...</span>
+                <span id="record-status" class="text-sm font-semibold text-slate-400 mt-2 sm:mt-0 px-4 py-2 bg-slate-900/50 rounded-xl border border-slate-800 flex items-center gap-2">
+                    <span class="w-2 h-2 rounded-full bg-slate-600 animate-pulse"></span> 현재 대기 중...
+                </span>
             </div>
         </div>
 
-        <h2 class="text-xl font-semibold mb-4 flex items-center gap-2 border-b border-gray-700 pb-2">
-            <i data-lucide="volume-2"></i> 돌봄 피드백 (Actuators)
+        <!-- Actuators Panel -->
+        <h2 class="text-lg font-bold tracking-tight text-slate-300 mb-4 flex items-center gap-2">
+            <i data-lucide="settings" class="text-slate-400 w-5 h-5"></i> 액추에이터 제어 및 상태 (Actuators)
         </h2>
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-            <div id="led1-card" class="bg-gray-800 p-4 rounded-lg border border-gray-700 text-center transition-colors duration-300">
-                <span class="text-sm font-semibold text-gray-300">LED 1 (감정 표현 모터 가동)</span>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <!-- 하드웨어 상태 표시 LED -->
+            <div class="glass-panel p-6 rounded-2xl md:col-span-2">
+                <h3 class="text-sm font-semibold text-slate-400 mb-4">물리 지시등 상태 (LED Indicator Status)</h3>
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                    <div id="led1-card" class="bg-slate-900 border border-slate-800 p-4 rounded-xl text-center transition-all duration-300 flex flex-col items-center justify-center gap-2">
+                        <div class="w-4 h-4 rounded-full bg-slate-800" id="led1-dot"></div>
+                        <span class="text-xs font-bold text-slate-300">LED 1 (정상-초록)</span>
+                    </div>
+                    <div id="led2-card" class="bg-slate-900 border border-slate-800 p-4 rounded-xl text-center transition-all duration-300 flex flex-col items-center justify-center gap-2">
+                        <div class="w-4 h-4 rounded-full bg-slate-800" id="led2-dot"></div>
+                        <span class="text-xs font-bold text-slate-300">LED 2 (주의-노랑)</span>
+                    </div>
+                    <div id="led3-card" class="bg-slate-900 border border-slate-800 p-4 rounded-xl text-center transition-all duration-300 flex flex-col items-center justify-center gap-2">
+                        <div class="w-4 h-4 rounded-full bg-slate-800" id="led3-dot"></div>
+                        <span class="text-xs font-bold text-slate-300">LED 3 (위험-빨강)</span>
+                    </div>
+                    <div id="led4-card" class="bg-slate-900 border border-slate-800 p-4 rounded-xl text-center transition-all duration-300 flex flex-col items-center justify-center gap-2">
+                        <div class="w-4 h-4 rounded-full bg-slate-800" id="led4-dot"></div>
+                        <span class="text-xs font-bold text-slate-300">LED 4 (환기-파랑)</span>
+                    </div>
+                </div>
             </div>
-            <div id="led2-card" class="bg-gray-800 p-4 rounded-lg border border-gray-700 text-center transition-colors duration-300">
-                <span class="text-sm font-semibold text-gray-300">LED 2 (스피커 콘텐츠 출력)</span>
-            </div>
-            <div id="led3-card" class="bg-gray-800 p-4 rounded-lg border border-gray-700 text-center transition-colors duration-300">
-                <span class="text-sm font-semibold text-gray-300">LED 3 (취침 환경 조성)</span>
-            </div>
-            <div id="led4-card" class="bg-gray-800 p-4 rounded-lg border border-gray-700 text-center transition-colors duration-300">
-                <span class="text-sm font-semibold text-gray-300">LED 4 (돌봄 시스템 정상 구동)</span>
+
+            <!-- 강제 환기 제어 (서보 모터) -->
+            <div class="glass-panel p-6 rounded-2xl flex flex-col justify-between">
+                <div>
+                    <h3 class="text-sm font-semibold text-slate-400 mb-2">강제 배기 시스템</h3>
+                    <p class="text-xs text-slate-500 mb-4">환기 서보모터 구동 및 탈취 동작 시연</p>
+                </div>
+                <button onclick="triggerVentilation()" class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold py-3 px-6 rounded-xl transition-all duration-200 flex justify-center items-center gap-2 active:scale-[0.98] shadow-lg shadow-blue-950/40">
+                    <i data-lucide="rotate-cw" class="w-5 h-5"></i>
+                    강제 환기 동작 실행
+                </button>
             </div>
         </div>
+        
+        <!-- MQTT & WebSocket Status Info Footer -->
+        <footer class="mt-12 text-center text-xs text-slate-600 border-t border-slate-900 pt-6">
+            <p>MQTT Broker: <span class="text-slate-400">broker.hivemq.com</span> | Sub: <span class="text-slate-400">smart_ecobin/control</span> | Pub: <span class="text-slate-400">smart_ecobin/sensor</span></p>
+            <p class="mt-1">Computer System Engineering | 2026 Term Project</p>
+        </footer>
     </div>
 
     <script>
+        // Lucide Icons 초기화
         lucide.createIcons();
 
         const wsProtocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
         const wsUrl = `${wsProtocol}//${window.location.host}/ws`;
         let ws;
-        
-        let isRecording = false; // 클라이언트 단 수집 상태 플래그
+        let isRecording = false;
 
         // API 호출로 수집 토글
         async function toggleRecording() {
             const label = document.getElementById('label-select').value;
             
             if (!isRecording) {
-                // 수집 시작 API 호출
                 await fetch(`/api/record/start/${label}`);
             } else {
-                // 수집 중지 API 호출
                 await fetch(`/api/record/stop`);
             }
-            // 상태 UI 변경은 웹소켓 메시지를 받아서 자동으로 동기화되게 둡니다.
         }
 
-        // 수집 상태 UI 업데이트 전용 함수
+        // 수동 강제 환기 명령 트리거
+        async function triggerVentilation() {
+            try {
+                const response = await fetch('/api/control/ventilate');
+                const data = await response.json();
+                if (data.status === 'success') {
+                    console.log('수동 환기 작동 요청 성공');
+                }
+            } catch (error) {
+                console.error('환기 요청 에러:', error);
+            }
+        }
+
+        // 수집 상태 UI 업데이트
         function updateRecordingUI(collectingLabel) {
             const btn = document.getElementById('record-btn');
             const icon = document.getElementById('btn-icon');
@@ -134,24 +256,25 @@
             const selectBox = document.getElementById('label-select');
 
             if (collectingLabel !== null) {
-                // 수집 중 상태로 UI 변경
                 isRecording = true;
-                btn.classList.replace('bg-blue-600', 'bg-red-600');
-                btn.classList.replace('hover:bg-blue-700', 'hover:bg-red-700');
+                btn.classList.replace('from-emerald-600', 'from-red-600');
+                btn.classList.replace('to-teal-600', 'to-rose-600');
+                btn.classList.replace('hover:from-emerald-500', 'hover:from-red-500');
+                btn.classList.replace('hover:to-teal-500', 'hover:to-rose-500');
                 icon.setAttribute('data-lucide', 'square');
                 btnText.innerText = "수집 중지";
-                statusText.innerText = `🟢 DB 저장 중 (라벨: ${collectingLabel})`;
-                statusText.classList.replace('text-gray-400', 'text-green-400');
+                statusText.innerHTML = `<span class="w-2 h-2 rounded-full bg-green-500 animate-ping"></span> DB 수집 중 (라벨: ${collectingLabel})`;
+                statusText.classList.replace('text-slate-400', 'text-green-400');
                 selectBox.value = collectingLabel;
-                selectBox.disabled = true; // 수집 중일 때는 라벨 변경 방지
+                selectBox.disabled = true;
             } else {
-                // 대기 상태로 UI 변경
                 isRecording = false;
-                btn.classList.replace('bg-red-600', 'bg-blue-600');
-                btn.classList.replace('hover:bg-red-700', 'hover:bg-blue-700');
+                btn.classList.replace('from-red-600', 'from-emerald-600');
+                btn.classList.replace('to-rose-600', 'to-teal-600');
+                btn.classList.replace('hover:from-red-500', 'hover:from-emerald-500');
+                btn.classList.replace('hover:to-rose-500', 'hover:to-teal-500');
                 icon.setAttribute('data-lucide', 'play-circle');
                 btnText.innerText = "수집 시작";
-                statusText.innerText = "현재 대기 중...";
                 statusText.classList.replace('text-green-400', 'text-gray-400');
                 selectBox.disabled = false;
             }
@@ -162,12 +285,16 @@
             ws = new WebSocket(wsUrl);
 
             ws.onopen = () => {
-                document.getElementById('ws-status-indicator').classList.replace('bg-red-500', 'bg-green-500');
+                const indicator = document.getElementById('ws-status-indicator');
+                indicator.classList.replace('bg-red-500', 'bg-green-500');
+                indicator.classList.add('neon-glow-green');
                 document.getElementById('ws-status-text').innerText = '실시간 연결됨';
             };
 
             ws.onclose = () => {
-                document.getElementById('ws-status-indicator').classList.replace('bg-green-500', 'bg-red-500');
+                const indicator = document.getElementById('ws-status-indicator');
+                indicator.classList.replace('bg-green-500', 'bg-red-500');
+                indicator.classList.remove('neon-glow-green');
                 document.getElementById('ws-status-text').innerText = '연결 끊김 (재연결 중...)';
                 setTimeout(connectWebSocket, 3000);
             };
@@ -175,87 +302,77 @@
             ws.onmessage = (event) => {
                 const data = JSON.parse(event.data);
                 
-                // 센서 데이터 갱신
+                // 1. 센서 데이터 갱신
                 const sensors = data.sensors;
-                document.getElementById('temp').innerText = sensors.temperature;
-                document.getElementById('hum').innerText = sensors.humidity;
-                document.getElementById('dist').innerText = sensors.distance;
+                document.getElementById('gas-val').innerText = sensors.gas;
+                document.getElementById('temp-val').innerText = sensors.temperature;
+                document.getElementById('hum-val').innerText = sensors.humidity;
+                document.getElementById('dist-val').innerText = sensors.distance_cm;
+                
+                // 적재율 계산 (센서-쓰레기 거리가 가까울수록 적재율이 올라감)
+                // 총 뚜껑 높이를 대략 30cm라 가정
+                const totalHeight = 30;
+                let fillPercent = Math.round(((totalHeight - sensors.distance_cm) / totalHeight) * 100);
+                fillPercent = Math.max(0, Math.min(100, fillPercent));
+                document.getElementById('fill-percent').innerText = fillPercent;
 
-                // 불쾌지수(DI) 갱신 및 상태 표시
-                const di = sensors.discomfort_index !== undefined ? sensors.discomfort_index : '--';
-                document.getElementById('discomfort-index').innerText = di;
+                // 2. 뚜껑 상태 (is_closed) 갱신
+                const lidPanel = document.getElementById('lid-panel');
+                const lidBadge = document.getElementById('lid-status-badge');
+                const lidText = document.getElementById('lid-status-text');
+                const lidTitleIcon = document.getElementById('lid-title-icon');
                 
-                const statusEl = document.getElementById('discomfort-status');
-                const iconEl = document.getElementById('discomfort-icon');
-                
-                if (di !== '--') {
-                    if (di < 68) {
-                        statusEl.innerText = "쾌적";
-                        statusEl.className = "text-cyan-400";
-                        iconEl.className = "text-cyan-400 w-8 h-8 mb-3";
-                    } else if (di < 75) {
-                        statusEl.innerText = "보통";
-                        statusEl.className = "text-green-400";
-                        iconEl.className = "text-green-400 w-8 h-8 mb-3";
-                    } else if (di < 80) {
-                        statusEl.innerText = "불쾌";
-                        statusEl.className = "text-yellow-400";
-                        iconEl.className = "text-yellow-400 w-8 h-8 mb-3";
-                    } else {
-                        statusEl.innerText = "매우 불쾌";
-                        statusEl.className = "text-red-500";
-                        iconEl.className = "text-red-500 w-8 h-8 mb-3";
-                    }
+                if (sensors.is_closed) {
+                    lidBadge.innerText = "닫힘";
+                    lidBadge.className = "px-3 py-1 rounded-full text-xs font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20";
+                    lidText.innerText = "부패도 추론 가능";
+                    lidText.className = "text-lg font-semibold mt-2 text-emerald-400";
+                    lidTitleIcon.setAttribute('data-lucide', 'door-closed');
                 } else {
-                    statusEl.innerText = "판독 중";
-                    statusEl.className = "text-gray-400";
-                    iconEl.className = "text-gray-400 w-8 h-8 mb-3";
-                }
-                
-                const motionEl = document.getElementById('motion');
-                if(sensors.motion === 1) {
-                    motionEl.innerText = "감지됨!";
-                    motionEl.classList.add('text-red-400');
-                } else {
-                    motionEl.innerText = "안전";
-                    motionEl.classList.remove('text-red-400');
+                    lidBadge.innerText = "열림";
+                    lidBadge.className = "px-3 py-1 rounded-full text-xs font-bold bg-rose-500/10 text-rose-400 border border-rose-500/20";
+                    lidText.innerText = "오탐 방지 대기 중";
+                    lidText.className = "text-lg font-semibold mt-2 text-rose-400";
+                    lidTitleIcon.setAttribute('data-lucide', 'door-open');
                 }
 
-                document.getElementById('cds').innerText = sensors.is_dark === 1 ? "어두움" : "밝음";
-
-                // AI 결정 상태 갱신
+                // 3. AI 결정 상태 갱신
                 const ai = data.ai_decision;
                 const aiStatusEl = document.getElementById('ai-status');
                 aiStatusEl.innerText = ai.ai_status;
-                if(ai.ai_status.includes("위험") || ai.ai_status.includes("주의")) {
-                    aiStatusEl.classList.replace('text-green-400', 'text-red-500');
+                
+                if (ai.status === "DANGER") {
+                    aiStatusEl.className = "text-3xl font-black text-rose-500 mt-4 tracking-tight drop-shadow-md";
+                } else if (ai.status === "WARNING") {
+                    aiStatusEl.className = "text-3xl font-black text-amber-400 mt-4 tracking-tight drop-shadow-md";
                 } else {
-                    aiStatusEl.classList.replace('text-red-500', 'text-green-400');
+                    aiStatusEl.className = "text-3xl font-black text-emerald-400 mt-4 tracking-tight drop-shadow-md";
                 }
 
-                // LED 갱신
-                updateLedUI('led1-card', ai.led_action);
-                updateLedUI('led2-card', ai.led_interact);
-                // LED 3은 AI 추론과 독립적으로 조도 센서 값에 따라 표시 (조도 센서가 0(어두움=1)이면 켬, 1(밝음=0)이면 끔)
-                updateLedUI('led3-card', sensors.is_dark === 1);
-                updateLedUI('led4-card', ai.led_care_status);
+                // 4. LED 갱신
+                updateLedUI('led1-card', 'led1-dot', ai.status === 'NORMAL', 'bg-green-500', 'neon-glow-green');
+                updateLedUI('led2-card', 'led2-dot', ai.status === 'WARNING', 'bg-yellow-500', 'neon-glow-yellow');
+                updateLedUI('led3-card', 'led3-dot', ai.status === 'DANGER', 'bg-red-500', 'neon-glow-red');
+                updateLedUI('led4-card', 'led4-dot', ai.led_action || ai.run_fan, 'bg-blue-500', 'neon-glow-blue');
 
-                // 백엔드의 현재 수집 상태(current_label)와 UI 동기화
-                // 내가 누르지 않았어도 다른 브라우저 창에서 수집을 켰다면 같이 변경됨
+                // 5. 백엔드의 현재 수집 상태와 UI 동기화
                 if ((data.collecting_label !== null && !isRecording) || (data.collecting_label === null && isRecording)) {
                     updateRecordingUI(data.collecting_label);
                 }
             };
         }
 
-        function updateLedUI(elementId, isOn) {
-            const el = document.getElementById(elementId);
-            if(isOn) {
-                el.classList.add('bg-blue-600', 'border-blue-400');
-                el.classList.remove('bg-gray-800', 'border-gray-700');
+        function updateLedUI(cardId, dotId, isOn, colorClass, glowClass) {
+            const card = document.getElementById(cardId);
+            const dot = document.getElementById(dotId);
+            if (isOn) {
+                card.classList.replace('bg-slate-900', 'bg-slate-800/80');
+                card.classList.replace('border-slate-800', 'border-slate-700');
+                dot.className = `w-4 h-4 rounded-full ${colorClass} ${glowClass}`;
             } else {
-                el.classList.remove('bg-blue-600', 'border-blue-400');
-                el.classList.add('bg-gray-800', 'border-gray-700');
+                card.classList.replace('bg-slate-800/80', 'bg-slate-900');
+                card.classList.replace('border-slate-700', 'border-slate-800');
+                dot.className = "w-4 h-4 rounded-full bg-slate-800";
             }
         }
 

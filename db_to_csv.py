@@ -9,13 +9,13 @@ def export_db_to_csv():
     conn = sqlite3.connect(DB_NAME)
     cursor = conn.cursor()
     
-    # 조도센서를 제외한 핵심 feature 4개와 정답 라벨 추출
-    query = "SELECT temperature, humidity, distance, motion, label FROM care_logs"
+    # Smart Eco-Bin 핵심 피처 4개와 정답 라벨 추출
+    query = "SELECT gas, temperature, humidity, distance_cm, label FROM sensor_data WHERE label IS NOT NULL"
     cursor.execute(query)
     rows = cursor.fetchall()
     
     if not rows:
-        print("DB에 추출할 데이터가 없습니다.")
+        print("DB에 추출할 데이터가 없습니다 (라벨이 지정된 데이터가 필요합니다).")
         conn.close()
         return
         
@@ -23,7 +23,7 @@ def export_db_to_csv():
     with open(CSV_NAME, mode='w', newline='', encoding='utf-8') as f:
         writer = csv.writer(f)
         # 텐서플로우 데이터셋 매핑용 헤더 작성
-        writer.writerow(['temperature', 'humidity', 'distance', 'motion', 'label'])
+        writer.writerow(['gas', 'temperature', 'humidity', 'distance_cm', 'label'])
         # 데이터 대량 주입
         writer.writerows(rows)
         
