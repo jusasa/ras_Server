@@ -1,4 +1,12 @@
+import sys
+import os
 import asyncio
+
+# Ensure project root is in sys.path
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+if BASE_DIR not in sys.path:
+    sys.path.insert(0, BASE_DIR)
+
 from src.ai_engine import TFLiteEngine
 
 async def simulate_hardware_timeout():
@@ -30,7 +38,7 @@ def simulate_ai_load_error():
     print("상황: 라즈베리파이 SD 카드 오류로 AI 모델 파일이 삭제되거나 경로가 틀린 상태 연출")
     
     # 일부러 존재하지 않는 파일 경로를 주입하여 ai_engine.py의 _load_model() 에러 유도
-    engine = TFLiteEngine(model_path="models/broken_or_missing_model.tflite")
+    engine = TFLiteEngine(model_path=os.path.join(BASE_DIR, "models", "broken_or_missing_model.tflite"))
     
     print(f"✔️ AI 엔진 상태 플래그 (is_loaded) -> {engine.is_loaded} (정상적으로 False 처리됨)")
 
@@ -40,7 +48,7 @@ def simulate_ai_inference_error():
     print("상황: 센서 데이터 텐서 변환 중 메모리 부족이나 규격 불일치로 AI 연산이 실패하는 상태 연출")
     
     # 모델은 정상이라고 속인 뒤, 내부에 고의로 잘못된 객체를 넣어 에러 유도
-    engine = TFLiteEngine(model_path="models/edge_model.tflite") 
+    engine = TFLiteEngine(model_path=os.path.join(BASE_DIR, "models", "edge_model.tflite")) 
     engine.is_loaded = True 
     engine.interpreter = None  # 인터프리터 객체를 강제로 지워버림 (AttributeError 유도)
     

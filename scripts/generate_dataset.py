@@ -2,8 +2,11 @@ import sqlite3
 import random
 import time
 from datetime import datetime, timedelta
+import os
 
-DB_NAME = "sensor_dataset.db"
+# Project root path resolution
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+DB_NAME = os.path.join(BASE_DIR, "sensor_dataset.db")
 
 def init_db():
     conn = sqlite3.connect(DB_NAME)

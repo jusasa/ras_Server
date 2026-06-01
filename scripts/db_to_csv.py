@@ -1,9 +1,11 @@
-# export_to_csv.py
 import sqlite3
 import csv
+import os
 
-DB_NAME = "sensor_dataset.db"
-CSV_NAME = "sensor_dataset.csv"
+# Project root path resolution
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+DB_NAME = os.path.join(BASE_DIR, "sensor_dataset.db")
+CSV_NAME = os.path.join(BASE_DIR, "sensor_dataset.csv")
 
 def export_db_to_csv():
     conn = sqlite3.connect(DB_NAME)

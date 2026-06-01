@@ -2,6 +2,7 @@ import sqlite3
 import asyncio
 import json
 import logging
+import os
 from fastapi import FastAPI, Request, WebSocket, WebSocketDisconnect
 from fastapi.templating import Jinja2Templates
 import uvicorn
@@ -9,6 +10,9 @@ import paho.mqtt.client as mqtt
 
 from src.hardware import HardwareController
 from src.ai_engine import TFLiteEngine
+
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+DB_PATH = os.path.join(BASE_DIR, 'sensor_dataset.db')
 
 # 로그 설정
 logging.basicConfig(level=logging.INFO)
@@ -37,7 +41,7 @@ mqtt_client = None
 
 # DB 초기화 (label 컬럼 추가)
 def init_db():
-    conn = sqlite3.connect('sensor_dataset.db')
+    conn = sqlite3.connect(DB_PATH)
     c = conn.cursor()
     c.execute('''CREATE TABLE IF NOT EXISTS sensor_data
                  (id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -149,7 +153,7 @@ async def collect_data_loop():
             # 여기서는 뚜껑이 닫혀 있고 current_label이 설정되어 있을 때 데이터를 라벨과 함께 저장하도록 함
             if data['is_closed']:
                 if current_label is not None:
-                    conn = sqlite3.connect('sensor_dataset.db')
+                    conn = sqlite3.connect(DB_PATH)
                     c = conn.cursor()
                     c.execute("""INSERT INTO sensor_data 
                                  (timestamp, gas, temperature, humidity, distance_cm, is_closed, label) 

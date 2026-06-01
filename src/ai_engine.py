@@ -2,11 +2,15 @@
 import numpy as np
 import tflite_runtime.interpreter as tflite
 import logging
+import os
 
 logger = logging.getLogger(__name__)
 
 class TFLiteEngine:
-    def __init__(self, model_path="models/edge_model.tflite"):
+    def __init__(self, model_path=None):
+        if model_path is None:
+            base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+            model_path = os.path.join(base_dir, "models", "edge_model.tflite")
         self.model_path = model_path
         self.is_loaded = False
         self.interpreter = None

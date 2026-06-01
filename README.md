@@ -22,6 +22,8 @@
 | 부품명 | 용도 | 연결 핀 (라즈베리파이/쉴드) |
 | :--- | :--- | :--- |
 | **MQ-6** | 부패 가스 및 악취 농도 측정 | `ADC A0` (Analog) |
+| **MQ-6** | 부패 가스 및 악취 농도 측정 | `ADC A1` (Analog) |
+| **MQ-6** | 부패 가스 및 악취 농도 측정 | `ADC A2` (Analog) |
 | **DHT11** | 내부 온도 및 습도 측정 | `GPIO 21` |
 | **HC-SR04** | 쓰레기 적재량(거리) 측정 | Trig: `GPIO 17`, Echo: `GPIO 18` |
 | **Limit Switch** | 뚜껑 개폐 여부 (오탐 방지) | `GPIO 13` |
@@ -34,7 +36,6 @@
 ## 📁 디렉토리 구조 (Directory Structure)
 ```text
 term-project/
-├── db_to_csv.py           # SQLite DB 데이터를 CSV로 추출하는 스크립트 (학습 데이터 생성용)
 ├── main.py                # FastAPI 웹 서버 및 백그라운드 데이터 수집 메인 루프
 ├── models/
 │   └── edge_model.tflite  # 학습 완료된 초경량 Edge AI 추론 모델 파일
@@ -46,5 +47,32 @@ term-project/
 │   └── hardware.py        # 하드웨어 핀 제어 및 센서 데이터 수집 캡슐화 클래스
 ├── templates/
 │   └── dashboard.html     # 실시간 관제 및 원격 제어 프론트엔드 UI (Chart.js)
-├── test_error.py          # 단위 모듈 테스트 및 디버깅 스크립트
-└── tunnel.log             # 외부 포트포워딩 또는 ngrok 연결 로그
+├── scripts/
+│   ├── db_to_csv.py       # SQLite DB 데이터를 CSV로 추출하는 스크립트 (학습 데이터 생성용)
+│   └── generate_dataset.py # 학습용 가상 센서 데이터를 생성하여 DB에 주입하는 스크립트
+└── tests/
+    ├── test_error.py      # 에러 예외 처리 및 백엔드 안정성 시뮬레이션 테스트
+    └── test_light.py      # 디지털 조도 센서(BCM 13) 입력 디버깅 테스트
+```
+
+## ⚙️ 실행 및 테스트 방법 (How to Run & Test)
+* **백엔드 서버 실행:**
+  ```bash
+  python main.py
+  ```
+* **학습용 가상 데이터 생성:**
+  ```bash
+  python scripts/generate_dataset.py
+  ```
+* **데이터셋 CSV 추출 (학습용):**
+  ```bash
+  python scripts/db_to_csv.py
+  ```
+* **에러 예외 처리 테스트 (QA 시뮬레이터):**
+  ```bash
+  python tests/test_error.py
+  ```
+* **조도 센서 디버깅 테스트:**
+  ```bash
+  python tests/test_light.py
+  ```
