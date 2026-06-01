@@ -14,9 +14,10 @@ except ImportError:
     HAS_HARDWARE = False
 
 try:
-    import Adafruit_DHT
+    import dht11
+    import RPi.GPIO as GPIO
 except ImportError:
-    logger.warning("[하드웨어 알림] Adafruit_DHT 라이브러리가 없어 가상 DHT11 온습도 센서로 동작합니다.")
+    logger.warning("[하드웨어 알림] dht11 또는 RPi.GPIO 라이브러리가 없어 가상 DHT11 온습도 센서로 동작합니다.")
     HAS_HARDWARE = False
 
 try:
@@ -38,8 +39,9 @@ class HardwareController:
                 self.spi.max_speed_hz = 1350000
                 
                 # 2. 온습도 센서 (DHT11) - GPIO 21
-                self.dht_sensor = Adafruit_DHT.DHT11
-                self.dht_pin = 21
+                GPIO.setwarnings(False)
+                GPIO.setmode(GPIO.BCM)
+                self.dht_sensor = dht11.DHT11(pin=21)
                 
                 # 3. 초음파 센서 (HC-SR04) - Trig: 17, Echo: 18
                 self.ultrasonic = DistanceSensor(echo=18, trigger=17, max_distance=2.0)
@@ -100,12 +102,13 @@ class HardwareController:
             logger.warning(f"[MQ-6 가스 센서 오류] 가스 값을 읽을 수 없습니다: {e}")
             gas = 120
             
-        # 2. 온습도 센서 계측 (라즈베리파이 4/5 감지 오류인 Unknown platform 방어)
+        # 2. 온습도 센서 계측 (dht11 라이브러리 사용으로 Unknown platform 오류 완전 방어)
         humidity, temperature = 0, 0
         try:
-            h, t = Adafruit_DHT.read_retry(self.dht_sensor, self.dht_pin)
-            if h is not None and t is not None:
-                humidity, temperature = h, t
+            result = self.dht_sensor.read()
+            if result.is_valid():
+                humidity = result.humidity
+                temperature = result.temperature
         except Exception as e:
             logger.warning(f"[DHT11 온습도 센서 계측 오류] 온습도 센서 읽기 실패 ({e})")
 

@@ -5,6 +5,6 @@ websockets
 paho-mqtt
 gpiozero
 spidev
-Adafruit-DHT
+dht11
 tflite-runtime
 pandas
