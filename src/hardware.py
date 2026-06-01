@@ -1,106 +1,90 @@
-import RPi.GPIO as GPIO
-import dht11
 import time
+import spidev
+import Adafruit_DHT
+from gpiozero import DistanceSensor, Button, Servo, LED
 
 class HardwareController:
     def __init__(self):
-        # 핀 번호 체계를 BCM으로 통일 및 경고 비활성화
-        GPIO.setwarnings(False)
-        GPIO.setmode(GPIO.BCM)
+        # 1. 가스 센서 (MQ-6) - ADC 0번 채널 (A0)
+        self.spi = spidev.SpiDev()
+        self.spi.open(0, 0)
+        self.spi.max_speed_hz = 1350000
         
-        # 1. 액추에이터 (LED/모터/스피커 대용) 핀 번호
-        self.led_action = 16       # 활동 반응 / 감정표현 모터
-        self.led_interact = 20     # 근접 교감 / 스피커 출력
-        self.led_sleep = 19        # 취침 환경 유도 표시
-        self.led_care_status = 26  # 돌봄 시스템 가동 상태
+        # 2. 온습도 센서 (DHT11) - GPIO 21
+        self.dht_sensor = Adafruit_DHT.DHT11
+        self.dht_pin = 21
         
-        # 초기값을 무조건 LOW로 동시 할당하여 튕김 방지
-        for pin in [self.led_action, self.led_interact, self.led_sleep, self.led_care_status]:
-            GPIO.setup(pin, GPIO.OUT, initial=GPIO.LOW)
+        # 3. 초음파 센서 (HC-SR04) - Trig: 17, Echo: 18
+        self.ultrasonic = DistanceSensor(echo=18, trigger=17, max_distance=2.0)
         
-        # 2. 일반 센서 (PIR, 조도) 핀 설정
-        self.pir_pin = 21  
-        GPIO.setup(self.pir_pin, GPIO.IN)
-        self.light_pin = 13
-        GPIO.setup(self.light_pin, GPIO.IN)
+        # 4. 리미트 스위치 (뚜껑 닫힘 감지) - GPIO 13
+        self.limit_switch = Button(13, pull_up=True)
         
-        # 3. 온습도 센서 (DHT11) 핀 설정
-        self.dht_pin = 12  
-        self.dht = dht11.DHT11(pin=self.dht_pin)
+        # 5. 서보 모터 (강제 환기 또는 탈취제 분사) - GPIO 6
+        self.servo = Servo(6)
         
-        # 4. 초음파 센서 핀 설정
-        self.trig_pin = 5  
-        self.echo_pin = 6  
-        GPIO.setup(self.trig_pin, GPIO.OUT, initial=GPIO.LOW)
-        GPIO.setup(self.echo_pin, GPIO.IN)
+        # 6. 상태 표시 LED (19, 26, 16, 20)
+        self.led_normal = LED(19)   # 초록 (정상)
+        self.led_warning = LED(26)  # 노랑 (주의)
+        self.led_danger = LED(16)   # 빨강 (위험)
+        self.led_action = LED(20)   # 파랑 (팬/서보 작동 표시)
+
+    def read_gas(self):
+        # MCP3208(12bit) 기준 A0 채널 읽기
+        adc = self.spi.xfer2([6 | (0 & 4) >> 2, (0 & 3) << 6, 0])
+        data = ((adc[1] & 15) << 8) + adc[2]
+        return data
+
+    def get_sensor_data(self):
+        """모든 센서 데이터를 딕셔너리로 반환"""
+        gas = self.read_gas()
+        humidity, temperature = Adafruit_DHT.read_retry(self.dht_sensor, self.dht_pin)
+        distance = self.ultrasonic.distance * 100 # cm 단위 변환
+        is_closed = self.limit_switch.is_pressed # True면 닫힘, False면 열림
         
-        # 온습도 캐싱 변수
-        self.last_temp = 0.0
-        self.last_hum = 0.0
+        # DHT11은 가끔 에러로 None을 뱉으므로 예외 처리
+        if humidity is None or temperature is None:
+            humidity, temperature = 0, 0
 
-    def _get_distance_safe(self, timeout=0.04):
-        """초음파 센서 무한 대기를 방어하는 안전한 거리 측정 함수"""
-        GPIO.output(self.trig_pin, True)
-        time.sleep(0.00001)
-        GPIO.output(self.trig_pin, False)
-
-        pulse_start = time.time()
-        timeout_start = pulse_start
-
-        while GPIO.input(self.echo_pin) == 0:
-            pulse_start = time.time()
-            if pulse_start - timeout_start > timeout:
-                return 200.0
-
-        pulse_end = time.time()
-        timeout_start = pulse_end
-
-        while GPIO.input(self.echo_pin) == 1:
-            pulse_end = time.time()
-            if pulse_end - timeout_start > timeout:
-                return 200.0
-
-        pulse_duration = pulse_end - pulse_start
-        distance = pulse_duration * 17150
-        
-        if distance > 200.0:
-            return 200.0
-            
-        return round(distance, 1)
-
-    def read_sensors(self):
-        """모든 센서 데이터를 읽어 딕셔너리로 반환"""
-        # 1. 온습도 읽기
-        dht_result = self.dht.read()
-        if dht_result.is_valid():
-            self.last_temp = dht_result.temperature
-            self.last_hum = dht_result.humidity
-
-        # 2. 초음파 거리 측정
-        distance = self._get_distance_safe()
-
-        # 3. PIR 모션 읽기
-        motion = GPIO.input(self.pir_pin)
-
-        # 조도 센서가 0일 때 어두움(1) 상태가 되도록 설정 (들어오는 값 1 = 밝음/LED OFF, 0 = 어두움/LED ON)
-        is_dark = 0 if GPIO.input(self.light_pin) else 1
         return {
-            "temperature": self.last_temp,
-            "humidity": self.last_hum,
-            "distance": distance,
-            "motion": motion,
-            "is_dark": is_dark
+            "gas": gas,
+            "temperature": temperature,
+            "humidity": humidity,
+            "distance_cm": round(distance, 1),
+            "is_closed": is_closed,
+            "timestamp": time.time()
         }
 
-    def control_leds(self, control_dict, is_dark=0):
-        """AI 추론 결과 및 단순 조도 센서 값에 따른 피드백 제어"""
-        GPIO.output(self.led_action, GPIO.HIGH if control_dict.get("led_action") else GPIO.LOW)
-        GPIO.output(self.led_interact, GPIO.HIGH if control_dict.get("led_interact") else GPIO.LOW)
-        GPIO.output(self.led_sleep, GPIO.HIGH if is_dark == 1 else GPIO.LOW)
-        GPIO.output(self.led_care_status, GPIO.HIGH if control_dict.get("led_care_status") else GPIO.LOW)
+    def set_status_led(self, status):
+        """status: 'NORMAL', 'WARNING', 'DANGER'"""
+        self.led_normal.off()
+        self.led_warning.off()
+        self.led_danger.off()
         
-    def cleanup(self):
-        """종료 시 자원 해제"""
-        for pin in [self.led_action, self.led_interact, self.led_sleep, self.led_care_status]:
-            GPIO.output(pin, GPIO.LOW)
-        GPIO.cleanup()
+        if status == 'NORMAL':
+            self.led_normal.on()
+        elif status == 'WARNING':
+            self.led_warning.on()
+        elif status == 'DANGER':
+            self.led_danger.on()
+
+    def run_ventilation(self):
+        """환기 서보모터 구동 테스트"""
+        self.led_action.on()
+        self.servo.max()
+        time.sleep(1)
+        self.servo.min()
+        time.sleep(1)
+        self.servo.detach() # 떨림 방지
+        self.led_action.off()
+
+# 단독 테스트용 코드 (python src/hardware.py 로 실행 시)
+if __name__ == "__main__":
+    hw = HardwareController()
+    try:
+        while True:
+            data = hw.get_sensor_data()
+            print(f"센서 데이터: {data}")
+            time.sleep(1)
+    except KeyboardInterrupt:
+        print("\n종료합니다.")
