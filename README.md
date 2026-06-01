@@ -42,6 +42,7 @@ term-project/
 ├── requirements.txt       # Python 패키지 의존성 목록
 ├── sensor_dataset.csv     # 추출된 학습용 원시 데이터 (센서 로그)
 ├── sensor_dataset.db      # 실시간 센서 데이터가 적재되는 로컬 SQLite DB
+├── system_documentation.md # 시스템 아키텍처, 플로우차트 및 핀 맵 명세서
 ├── src/
 │   ├── ai_engine.py       # TFLite 모델 로드 및 실시간 추론(Inference) 클래스
 │   └── hardware.py        # 하드웨어 핀 제어 및 센서 데이터 수집 캡슐화 클래스
