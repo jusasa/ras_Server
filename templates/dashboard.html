@@ -86,7 +86,7 @@
         <h2 class="text-lg font-bold tracking-tight text-slate-300 mb-4 flex items-center gap-2">
             <i data-lucide="gauge" class="text-slate-400 w-5 h-5"></i> 실시간 계측 센서 데이터 (Sensors)
         </h2>
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
             <!-- 1. 부패 가스 (MQ-6) -->
             <div class="glass-panel p-5 rounded-2xl flex flex-col justify-between hover:border-slate-700 transition-all duration-300">
                 <div class="flex justify-between items-start">
@@ -113,21 +113,7 @@
                 </div>
             </div>
 
-            <!-- 3. 내부 온도 (DHT11) -->
-            <div class="glass-panel p-5 rounded-2xl flex flex-col justify-between hover:border-slate-700 transition-all duration-300">
-                <div class="flex justify-between items-start">
-                    <span class="text-slate-400 text-xs font-semibold">내부 온도</span>
-                    <span class="p-2 rounded-xl bg-rose-500/10 text-rose-400"><i data-lucide="thermometer" class="w-5 h-5"></i></span>
-                </div>
-                <div class="mt-4">
-                    <div class="text-3xl font-extrabold tracking-tight flex items-baseline gap-1">
-                        <span id="temp-val">--</span><span class="text-lg font-normal text-slate-400">°C</span>
-                    </div>
-                    <span class="text-xs text-slate-500 mt-1 block">부패 속도 가속화 지표</span>
-                </div>
-            </div>
-
-            <!-- 4. 내부 습도 (DHT11) -->
+            <!-- 3. 내부 습도 (DHT11) -->
             <div class="glass-panel p-5 rounded-2xl flex flex-col justify-between hover:border-slate-700 transition-all duration-300">
                 <div class="flex justify-between items-start">
                     <span class="text-slate-400 text-xs font-semibold">내부 습도</span>
@@ -305,7 +291,6 @@
                 // 1. 센서 데이터 갱신
                 const sensors = data.sensors;
                 document.getElementById('gas-val').innerText = sensors.gas;
-                document.getElementById('temp-val').innerText = sensors.temperature;
                 document.getElementById('hum-val').innerText = sensors.humidity;
                 document.getElementById('dist-val').innerText = sensors.distance_cm;
                 

@@ -60,6 +60,18 @@ class HardwareController:
             except Exception as e:
                 logger.error(f"[하드웨어 초기화 실패] 에러: {e}. 가상 시뮬레이션 모드로 강제 전환합니다.")
                 self.has_hw = False
+        
+        # 센서 데이터 일시 오독 방지용 Latch 변수 초기화
+        self.last_gas = 120
+        self.last_temperature = 24.0
+        self.last_humidity = 50.0
+        self.last_distance = 25.0
+
+    def read_adc_channel(self, channel):
+        """MCP3208(12bit) 특정 채널의 ADC 값 읽기"""
+        adc = self.spi.xfer2([6 | (channel & 4) >> 2, (channel & 3) << 6, 0])
+        data = ((adc[1] & 15) << 8) + adc[2]
+        return data
 
     def read_gas(self):
         if not self.has_hw:
@@ -67,12 +79,17 @@ class HardwareController:
             return random.randint(100, 350)
             
         try:
-            # MCP3208(12bit) 기준 A0 채널 읽기
-            adc = self.spi.xfer2([6 | (0 & 4) >> 2, (0 & 3) << 6, 0])
-            data = ((adc[1] & 15) << 8) + adc[2]
-            return data
-        except Exception:
-            return 120 # 에러 발생 시 기본값
+            # A0, A1, A2 3개 채널의 가스 농도를 각각 계측
+            gas_a0 = self.read_adc_channel(0)
+            gas_a1 = self.read_adc_channel(1)
+            gas_a2 = self.read_adc_channel(2)
+            
+            # 3개 채널의 가스 센서 평균값 산출
+            avg_gas = int(round((gas_a0 + gas_a1 + gas_a2) / 3.0))
+            return avg_gas
+        except Exception as e:
+            logger.error(f"[가스 센서 계측 에러] A0/A1/A2 다중 센서 읽기 실패: {e}")
+            raise e
 
     def get_sensor_data(self):
         """모든 센서 데이터를 딕셔너리로 반환"""
@@ -93,36 +110,40 @@ class HardwareController:
                 "timestamp": time.time()
             }
             
-        # 각 센서별 개별 예외처리 적용 (하나가 실패해도 다른 센서는 정상 계측되도록 보장)
+        # 각 센서별 개별 예외처리 및 Latching(이전 성공값 유지) 적용
         
         # 1. 가스 센서 계측
         try:
             gas = self.read_gas()
+            self.last_gas = gas
         except Exception as e:
-            logger.warning(f"[MQ-6 가스 센서 오류] 가스 값을 읽을 수 없습니다: {e}")
-            gas = 120
+            logger.warning(f"[MQ-6 가스 센서 오류] 가스 값을 읽을 수 없습니다: {e}. 직전 유효값을 유지합니다.")
+            gas = self.last_gas
             
-        # 2. 온습도 센서 계측 (dht11 라이브러리 사용으로 Unknown platform 오류 완전 방어)
-        humidity, temperature = 0, 0
+        # 2. 온습도 센서 계측 (dht11 간헐적 오독 방지용 이전값 Latch 보정)
         try:
             result = self.dht_sensor.read()
             if result.is_valid():
-                humidity = result.humidity
-                temperature = result.temperature
+                self.last_humidity = result.humidity
+                self.last_temperature = result.temperature
         except Exception as e:
             logger.warning(f"[DHT11 온습도 센서 계측 오류] 온습도 센서 읽기 실패 ({e})")
+        
+        humidity = self.last_humidity
+        temperature = self.last_temperature
 
-        # 3. 초음파 거리 센서 계측 (DistanceSensorNoEcho 경고 방어)
+        # 3. 초음파 거리 센서 계측 (DistanceSensorNoEcho 경고 방어 및 Latch)
         try:
-            # 기본적으로 distance 프로퍼티 호출 시 값이 반환됨
             distance = self.ultrasonic.distance * 100
+            self.last_distance = distance
         except Exception as e:
-            logger.warning(f"[HC-SR04 초음파 센서 계측 오류] 거리 읽기 실패 ({e})")
-            distance = 30.0 # 센서 고장 시의 기본 안전 거리 (안전 범주)
+            logger.warning(f"[HC-SR04 초음파 센서 계측 오류] 거리 읽기 실패 ({e}). 직전 유효값을 유지합니다.")
+            distance = self.last_distance
 
-        # 4. 리미트 스위치 계측
+        # 4. 리미트 스위치 계측 (반대 로직 적용)
         try:
-            is_closed = self.limit_switch.is_pressed
+            # 반대 로직: switch가 눌리지 않았을 때(is_pressed=False)를 뚜껑이 닫힌 상태(is_closed=True)로 매핑
+            is_closed = not self.limit_switch.is_pressed
         except Exception as e:
             logger.warning(f"[Limit Switch 오류] 스위치 상태를 읽을 수 없습니다: {e}")
             is_closed = True
