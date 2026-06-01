@@ -1,0 +1,720 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>에지 AI 스마트 실버케어 돌봄 시스템 발표</title>
+    <!-- Google Fonts: Outfit & Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@400;600;700;900&family=Nanum+Gothic:wght@400;700;800&display=swap" rel="stylesheet">
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        :root {
+            --bg-color: #0b0f19;
+            --card-bg: rgba(17, 24, 39, 0.6);
+            --border-color: rgba(255, 255, 255, 0.08);
+            --text-primary: #f3f4f6;
+            --text-secondary: #9ca3af;
+            --accent-cyan: #06b6d4;
+            --accent-indigo: #6366f1;
+            --accent-emerald: #10b981;
+            --accent-rose: #f43f5e;
+            --font-display: 'Outfit', 'Nanum Gothic', sans-serif;
+            --font-body: 'Inter', sans-serif;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            background-image: 
+                radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.15) 0px, transparent 50%),
+                radial-gradient(at 100% 100%, rgba(6, 182, 212, 0.12) 0px, transparent 50%),
+                radial-gradient(at 50% 50%, rgba(16, 185, 129, 0.08) 0px, transparent 50%);
+            color: var(--text-primary);
+            font-family: var(--font-body);
+            overflow: hidden;
+            height: 100vh;
+            width: 100vw;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        /* Presentation Container */
+        .presentation-wrapper {
+            flex-grow: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+            position: relative;
+        }
+
+        .slide {
+            display: none;
+            width: 100%;
+            max-width: 1200px;
+            aspect-ratio: 16 / 9;
+            background: var(--card-bg);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid var(--border-color);
+            border-radius: 24px;
+            padding: 3.5rem;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            position: relative;
+            transform: scale(0.95);
+            opacity: 0;
+            transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.6s ease;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .slide.active {
+            display: flex;
+            transform: scale(1);
+            opacity: 1;
+        }
+
+        /* Slide Header */
+        .slide-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .slide-title-area h2 {
+            font-family: var(--font-display);
+            font-size: 2.2rem;
+            font-weight: 800;
+            background: linear-gradient(135deg, #fff 0%, #cbd5e1 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: -0.03em;
+        }
+
+        .slide-subtitle {
+            font-size: 1rem;
+            color: var(--text-secondary);
+            margin-top: 0.25rem;
+        }
+
+        .presenter-badge {
+            font-family: var(--font-display);
+            font-size: 0.85rem;
+            font-weight: 600;
+            padding: 0.5rem 1rem;
+            border-radius: 9999px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .presenter-badge.yongsuk {
+            background: rgba(6, 182, 212, 0.15);
+            color: var(--accent-cyan);
+            border-color: rgba(6, 182, 212, 0.3);
+        }
+
+        .presenter-badge.sukmin {
+            background: rgba(99, 102, 241, 0.15);
+            color: var(--accent-indigo);
+            border-color: rgba(99, 102, 241, 0.3);
+        }
+
+        .presenter-badge.shared {
+            background: rgba(16, 185, 129, 0.15);
+            color: var(--accent-emerald);
+            border-color: rgba(16, 185, 129, 0.3);
+        }
+
+        /* Slide Content Core Grid */
+        .slide-body {
+            flex-grow: 1;
+            display: grid;
+            gap: 2rem;
+            align-content: center;
+        }
+
+        .grid-2 {
+            grid-template-cols: repeat(2, 1fr);
+        }
+
+        /* UI Blocks & Cards */
+        .content-card {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.04);
+            border-radius: 16px;
+            padding: 1.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .content-card:hover {
+            background: rgba(255, 255, 255, 0.04);
+            border-color: rgba(255, 255, 255, 0.08);
+            transform: translateY(-2px);
+        }
+
+        .content-card h3 {
+            font-family: var(--font-display);
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin-bottom: 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .highlight-cyan { color: var(--accent-cyan); }
+        .highlight-indigo { color: var(--accent-indigo); }
+        .highlight-emerald { color: var(--accent-emerald); }
+        .highlight-rose { color: var(--accent-rose); }
+
+        .list-styled {
+            list-style: none;
+        }
+
+        .list-styled li {
+            position: relative;
+            padding-left: 1.5rem;
+            margin-bottom: 0.75rem;
+            font-size: 0.95rem;
+            color: var(--text-secondary);
+            line-height: 1.5;
+        }
+
+        .list-styled li::before {
+            content: "•";
+            position: absolute;
+            left: 0.25rem;
+            top: 0;
+            color: inherit;
+            font-weight: bold;
+            font-size: 1.2rem;
+        }
+
+        .list-styled li strong {
+            color: var(--text-primary);
+        }
+
+        /* Slide Footer & Navigation Bar */
+        .presentation-footer {
+            background: rgba(15, 23, 42, 0.8);
+            border-top: 1px solid var(--border-color);
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            backdrop-filter: blur(10px);
+            z-index: 100;
+        }
+
+        .footer-logo {
+            font-family: var(--font-display);
+            font-weight: 800;
+            font-size: 1.1rem;
+            letter-spacing: -0.02em;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .nav-controls {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+        }
+
+        .nav-btn {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: var(--text-primary);
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .nav-btn:hover:not(:disabled) {
+            background: var(--accent-indigo);
+            border-color: var(--accent-indigo);
+            transform: scale(1.05);
+        }
+
+        .nav-btn:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+
+        .slide-counter {
+            font-family: var(--font-display);
+            font-weight: 600;
+            font-size: 0.95rem;
+            color: var(--text-secondary);
+            letter-spacing: 0.05em;
+        }
+
+        .btn-fullscreen {
+            background: transparent;
+            border: none;
+            color: var(--text-secondary);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0.5rem;
+            transition: color 0.2s ease;
+        }
+
+        .btn-fullscreen:hover {
+            color: var(--text-primary);
+        }
+
+        /* Diagram / Drawing Layouts */
+        .diagram-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(0, 0, 0, 0.2);
+            border-radius: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.03);
+            padding: 1rem;
+            height: 100%;
+        }
+
+        /* Specific Table Style */
+        .slide-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.85rem;
+        }
+
+        .slide-table th, .slide-table td {
+            padding: 0.75rem 1rem;
+            text-align: left;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .slide-table th {
+            color: var(--text-primary);
+            font-weight: 600;
+            background: rgba(255, 255, 255, 0.02);
+        }
+
+        .slide-table td {
+            color: var(--text-secondary);
+        }
+
+        /* Slide 1 Special Layout */
+        .slide-title-layout {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            height: 100%;
+        }
+
+        .slide-title-layout h1 {
+            font-family: var(--font-display);
+            font-size: 3.5rem;
+            font-weight: 900;
+            line-height: 1.15;
+            margin-bottom: 1.5rem;
+            background: linear-gradient(135deg, #ffffff 0%, #cbd5e1 50%, #6366f1 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: -0.04em;
+        }
+
+        .slide-title-layout p {
+            font-size: 1.25rem;
+            color: var(--text-secondary);
+            max-width: 800px;
+            margin-bottom: 3rem;
+            line-height: 1.6;
+        }
+
+        .team-profile {
+            display: flex;
+            gap: 3rem;
+        }
+
+        .profile-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            padding: 1rem 2.5rem;
+            border-radius: 16px;
+            text-align: center;
+        }
+
+        .profile-card .role {
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            margin-bottom: 0.25rem;
+        }
+
+        .profile-card .name {
+            font-family: var(--font-display);
+            font-size: 1.2rem;
+            font-weight: 700;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="presentation-wrapper">
+
+        <!-- Slide 1: Title -->
+        <div class="slide slide-title-layout active">
+            <div class="presenter-badge shared"><i data-lucide="users"></i> 공동 발표</div>
+            <h1 style="margin-top: 1.5rem;">에지 AI 기반 독거노인 정서교감<br>및 자율 스마트 돌봄 시스템 개발</h1>
+            <p>실시간 다중 환경 센싱 데이터 융합과 온디바이스 TFLite 에이전트 결합을 통한 취약 계층 정서 돌봄 및 안전 모니터링 청사진</p>
+            <div class="team-profile">
+                <div class="profile-card">
+                    <div class="role highlight-cyan">기획 / 시스템 설계</div>
+                    <div class="name">권 용 석</div>
+                </div>
+                <div class="profile-card">
+                    <div class="role highlight-indigo">제작 / 소프트웨어</div>
+                    <div class="name">서 석 민</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 2: Background & Limitations -->
+        <div class="slide">
+            <div class="slide-header">
+                <div class="slide-title-area">
+                    <h2>01. 기획 배경 및 문제 정의</h2>
+                    <p class="slide-subtitle">기존 복지 모델의 구조적 한계 극복을 위한 비접촉 다중 센서 융합 시스템 수립</p>
+                </div>
+                <div class="presenter-badge yongsuk"><i data-lucide="user"></i> 권용석</div>
+            </div>
+            <div class="slide-body" style="grid-template-columns: 1fr 1fr;">
+                <div class="content-card">
+                    <h3 class="highlight-cyan"><i data-lucide="alert-triangle"></i> 기존 방식의 기술적/비용적 한계</h3>
+                    <ul class="list-styled" style="margin-top: 1rem;">
+                        <li><strong>사회적 케어 인프라 부족:</strong> 수작업 전화 및 단순 방문 의존으로 독거 가구 폭증 대비 인력 공급의 물리적 한계.</li>
+                        <li><strong>단순 규칙 감지기의 오작동:</strong> 단일 센서 임계값 비교 방식으로 인한 수많은 거짓 경보(False Alarm) 및 신뢰도 유실.</li>
+                        <li><strong>정서 교감 메커니즘 부재:</strong> 감지 기능 중심 구성으로 피보호자의 고립 및 우울 해소를 돕는 물리적 교감 피드백 부재.</li>
+                    </ul>
+                </div>
+                <div class="content-card">
+                    <h3 class="highlight-emerald"><i data-lucide="check-circle-2"></i> 에지 AI 스마트 돌봄 솔루션</h3>
+                    <ul class="list-styled" style="margin-top: 1rem;">
+                        <li><strong>비침습 다차원 센싱 데이터 융합:</strong> 사생활을 침해하는 카메라 관측 대신 온습도, 거리, 움직임, 조도를 종합 수집.</li>
+                        <li><strong>에지 기계학습 모델 탑재:</strong> 저성장 라즈베리파이 상에서 실시간 일상 데이터 가공을 통해 고독/교감/안정 상태 추론.</li>
+                        <li><strong>쌍방향 자율 피드백:</strong> 상황별 맞춤 행동(음성 콘텐츠 재생, 취침 유도, 감정 표현 모터 가동) 제공.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 3: Hardware Architecture -->
+        <div class="slide">
+            <div class="slide-header">
+                <div class="slide-title-area">
+                    <h2>02. 하드웨어 아키텍처 및 정합 설계</h2>
+                    <p class="slide-subtitle">전기적 레벨 시프팅 및 논리 제어를 통한 라즈베리파이 GPIO 안전 체계 구축</p>
+                </div>
+                <div class="presenter-badge sukmin"><i data-lucide="user"></i> 서석민</div>
+            </div>
+            <div class="slide-body" style="grid-template-columns: 1.2fr 0.8fr;">
+                <div class="content-card">
+                    <h3 class="highlight-indigo"><i data-lucide="cpu"></i> BCM 핀 매핑 및 전기적 인터페이스</h3>
+                    <table class="slide-table" style="margin-top: 0.5rem;">
+                        <thead>
+                            <tr>
+                                <th>컴포넌트 명칭</th>
+                                <th>핀 번호</th>
+                                <th>입출력</th>
+                                <th>주요 역할 및 전기적 특징</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>DHT11 온습도 센서</td>
+                                <td>BCM 12</td>
+                                <td>Input</td>
+                                <td>1-Wire 비트스트림 전송, 실내 적합도 산출용</td>
+                            </tr>
+                            <tr>
+                                <td>HC-SR04 초음파</td>
+                                <td>BCM 5, 6</td>
+                                <td>Out/In</td>
+                                <td><strong>5V Level Shifter 적용</strong> (100Ω/220Ω 전압 분배 회로)</td>
+                            </tr>
+                            <tr>
+                                <td>PIR 모션 센서</td>
+                                <td>BCM 21</td>
+                                <td>Input</td>
+                                <td>생활 움직임 반응 감지, 3.3V 출력 논리 다이렉트 맵핑</td>
+                            </tr>
+                            <tr>
+                                <td>디지털 조도 센서</td>
+                                <td>BCM 13</td>
+                                <td>Input</td>
+                                <td><strong>소프트웨어 논리 반전 적용</strong> (어두울 때 1, 밝을 때 0)</td>
+                            </tr>
+                            <tr>
+                                <td>4채널 LED 출력</td>
+                                <td>BCM 16, 20, 19, 26</td>
+                                <td>Output</td>
+                                <td>공통 음극(Common Cathode) 결선으로 와이어 최소화</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="content-card" style="display: flex; flex-direction: column; justify-content: center;">
+                    <h3 class="highlight-rose"><i data-lucide="zap"></i> 레벨 시프팅 수식</h3>
+                    <div style="background: rgba(0,0,0,0.3); padding: 1rem; border-radius: 8px; font-family: monospace; font-size: 0.85rem; margin-top: 0.5rem;">
+                        5V (Sensor Echo Out)<br>
+                        └─ [ 100 Ω 저항 ] ─ GPIO Input Pin (3.43V)<br>
+                        └─ [ 220 Ω 저항 ] ─ Ground (GND)<br><br>
+                        V_in = 5V * 220 / (100 + 220) = 3.4375V<br>
+                        (3.3V 톨러런스 범위 이내 안전 통화)
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 4: Software & AI Engine -->
+        <div class="slide">
+            <div class="slide-header">
+                <div class="slide-title-area">
+                    <h2>03. 소프트웨어 및 온디바이스 AI 구조</h2>
+                    <p class="slide-subtitle">FastAPI 비동기 스레드 파이프라인 및 경량화 TensorFlow Lite 추론엔진 최적화</p>
+                </div>
+                <div class="presenter-badge sukmin"><i data-lucide="user"></i> 서석민</div>
+            </div>
+            <div class="slide-body" style="grid-template-columns: 1fr 1fr;">
+                <div class="content-card">
+                    <h3 class="highlight-indigo"><i data-lucide="refresh-cw"></i> 비동기 병렬 스케줄링 (FastAPI)</h3>
+                    <ul class="list-styled" style="margin-top: 1rem;">
+                        <li><strong>asyncio 루프 백그라운드 구동:</strong> 메인 웹 응답 스레드를 블로킹하지 않고 센서 수집 및 AI 추론 루프를 1Hz 주기로 지속 가동.</li>
+                        <li><strong>비동기 스레드 위임:</strong> 하드웨어 I/O 및 TFLite 추론과 같이 CPU 연산이나 파일 디스크립터 대기가 필요한 작업은 `asyncio.to_thread`를 사용하여 별도 격리 스레드풀로 전송.</li>
+                    </ul>
+                </div>
+                <div class="content-card">
+                    <h3 class="highlight-indigo"><i data-lucide="brain"></i> 경량 온디바이스 AI 추론엔진</h3>
+                    <ul class="list-styled" style="margin-top: 1rem;">
+                        <li><strong>tflite-runtime 최적화:</strong> 무거운 TensorFlow 풀 패키지 대신 에지 추론 전용 라이브러리로 메모리 및 기동 속도 개선.</li>
+                        <li><strong>데이터 전처리:</strong> 온도, 습도, 거리, 생활 반응 센서 딕셔너리를 `(1, 4)` 차원의 float32 Numpy 배열로 인코딩하여 인터프리터에 주입.</li>
+                        <li><strong>추론 클래스 사후 연산:</strong> 예측 소프트맥스 확률 분포 해석을 거쳐 안정(0), 교감(1), 이상위험(2) 상태 텍스트로 치환.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 5: Communication API & Comfort Index -->
+        <div class="slide">
+            <div class="slide-header">
+                <div class="slide-title-area">
+                    <h2>04. API 구조 및 학술 연구 기반 쾌적도 산정</h2>
+                    <p class="slide-subtitle">실시간 웹소켓 연동 관제 체계 및 Thom의 불쾌지수 학술 공식 적용</p>
+                </div>
+                <div class="presenter-badge yongsuk"><i data-lucide="user"></i> 권용석</div>
+            </div>
+            <div class="slide-body" style="grid-template-columns: 1fr 1fr;">
+                <div class="content-card">
+                    <h3 class="highlight-cyan"><i data-lucide="code"></i> 실시간 및 제어 API 명세</h3>
+                    <ul class="list-styled" style="margin-top: 0.5rem; font-size: 0.9rem;">
+                        <li><strong>GET `/` (View):</strong> Jinja2 HTML5 기반의 관리자 돌봄 모니터링 실시간 대시보드 반환.</li>
+                        <li><strong>WS `/ws` (Stream):</strong> TCP 웹소켓 파이프라인 개설을 통해 1Hz 주기로 센서 구조 데이터와 AI 상태를 JSON 브로드캐스팅.</li>
+                        <li><strong>GET `/api/record/start/{label}` (REST):</strong> AI 학습용 실버케어 상황 데이터 취합 수집 모드 가동 및 SQLite 영속성 로깅 활성화.</li>
+                        <li><strong>GET `/api/record/stop` (REST):</strong> 데이터 수집 루프 정지.</li>
+                    </ul>
+                </div>
+                <div class="content-card">
+                    <h3 class="highlight-emerald"><i data-lucide="cloud-sun"></i> Thom의 불쾌지수(DI) 기반 쾌적도 산출</h3>
+                    <div style="background: rgba(0,0,0,0.3); padding: 0.75rem; border-radius: 8px; font-family: monospace; font-size: 0.8rem; margin: 0.5rem 0;">
+                        DI = 0.81 * T + 0.01 * H * (0.99 * T - 14.3) + 46.3
+                    </div>
+                    <ul class="list-styled" style="font-size: 0.85rem;">
+                        <li><strong>최적 쾌적 구간 (60~68 DI):</strong> 인체 반응 최상의 구간으로 <strong>100점 만점</strong> 부여.</li>
+                        <li><strong>고온 다습 구간 (DI > 68):</strong> DI 83(전원 불쾌) 기준 감점.<br>
+                        <code>Comfort Score = max(0, 100 - (DI - 68) * 6.67)</code></li>
+                        <li><strong>저온 건조 구간 (DI < 60):</strong> DI 45(한랭 불쾌) 기준 감점.<br>
+                        <code>Comfort Score = max(0, 100 - (60 - DI) * 6.67)</code></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 6: Fault Tolerance & QA -->
+        <div class="slide">
+            <div class="slide-header">
+                <div class="slide-title-area">
+                    <h2>05. 예외 격리 및 다중 폴백(Fallback) 메커니즘</h2>
+                    <p class="slide-subtitle">하드웨어 지연 예외 처리 및 AI 핵심 객체 유실 대응 모니터링</p>
+                </div>
+                <div class="presenter-badge sukmin"><i data-lucide="user"></i> 서석민</div>
+            </div>
+            <div class="slide-body" style="grid-template-columns: 1.2fr 0.8fr;">
+                <div class="content-card">
+                    <h3 class="highlight-indigo"><i data-lucide="shield-alert"></i> 하드웨어 및 소프트웨어 예외 복원력</h3>
+                    <ul class="list-styled" style="margin-top: 1rem;">
+                        <li><strong>물리 I/O 지연 및 단선 대응:</strong> 센서 모듈 결선 유실 시 비동기 대기 블로킹 루프를 방어하기 위해 <code>asyncio.wait_for</code> 기반 2초 강제 타임아웃 격리 수행. 타임아웃 발생 즉시 기본 안전 대입 데이터(안전 거리 200cm 등)로 대체하여 프로세스 생존.</li>
+                        <li><strong>TFLite 모델 누락 및 로드 에러 대응:</strong> AI 모델 파일이 삭제되거나 훼손되어 로드 플래그(is_loaded)가 False가 되는 경우, 시스템은 룰 기반(Rule-based) 세이프가드 가동 모드로 자율 롤백하여 모션 및 거리 기준 자율 제어를 수행.</li>
+                    </ul>
+                </div>
+                <div class="content-card">
+                    <h3 class="highlight-rose"><i data-lucide="gauge"></i> QA 가혹 시뮬레이션 결과</h3>
+                    <ul class="list-styled" style="margin-top: 1rem; font-size: 0.85rem;">
+                        <li><strong>시뮬레이터 가동 (`test_error.py`):</strong> 고의적 AI 인터프리터 해제(None) 및 5초 지연 블로킹 주입 가혹 조건 테스트 통과.</li>
+                        <li><strong>SLA 가용성 목표:</strong> 연간 가용성 <strong>99.9%</strong> 달성 설계 수립.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 7: Deployment Strategy -->
+        <div class="slide">
+            <div class="slide-header">
+                <div class="slide-title-area">
+                    <h2>06. 에지 디바이스 무중단 배포 및 원격 관제망</h2>
+                    <p class="slide-subtitle">Linux Systemd 데몬 서비스화와 Cloudflare Tunnel 보안 접속 기술 융합</p>
+                </div>
+                <div class="presenter-badge shared"><i data-lucide="users"></i> 공동 발표</div>
+            </div>
+            <div class="slide-body" style="grid-template-columns: 1fr 1fr;">
+                <div class="content-card">
+                    <h3 class="highlight-indigo"><i data-lucide="settings"></i> Systemd 무중단 데몬 배포 [서석민]</h3>
+                    <ul class="list-styled" style="margin-top: 1rem;">
+                        <li><strong>상시 가동 백그라운드 구현:</strong> SSH 연결 세션 이탈 시 강제 종료되는 스크립트 문제를 방지하기 위해 <code>care_system.service</code> 구성.</li>
+                        <li><strong>자동 부팅 및 생존 관리:</strong> 라즈베리파이 시스템 부팅 시 자동 기동 및 데몬 크래시 발생 시 자동 재시작(Restart=on-failure) 파라미터 적용.</li>
+                    </ul>
+                </div>
+                <div class="content-card">
+                    <h3 class="highlight-cyan"><i data-lucide="shield-check"></i> Cloudflare Tunnel 보안 관제 [권용석]</h3>
+                    <ul class="list-styled" style="margin-top: 1rem;">
+                        <li><strong>포트포워딩 불필요:</strong> 복잡하고 해킹 위험에 직접 노출되는 공유기 외부 개방 없이 암호화된 아웃바운드 터널 생성.</li>
+                        <li><strong>보안 HTTPS 접속 보장:</strong> cloudflared 데몬 연동을 통해 외부 모바일 기기 및 원격 복지사 망에서 안전한 대시보드 접근 및 관람 지원.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 8: Conclusion & Q&A -->
+        <div class="slide">
+            <div class="slide-header">
+                <div class="slide-title-area">
+                    <h2>07. 결론 및 상용화 기술 청사진</h2>
+                    <p class="slide-subtitle">기계학습 및 안전 결함 허용 아키텍처 기반 돌봄 서비스의 지평 확장</p>
+                </div>
+                <div class="presenter-badge yongsuk"><i data-lucide="user"></i> 권용석</div>
+            </div>
+            <div class="slide-body" style="grid-template-columns: 1.2fr 0.8fr;">
+                <div class="content-card">
+                    <h3 class="highlight-emerald"><i data-lucide="milestone"></i> 주요 성과 요약</h3>
+                    <ul class="list-styled" style="margin-top: 0.75rem;">
+                        <li><strong>기존 복지 감지의 한계 극복:</strong> 다중 센서 융합 및 에지 TFLite AI 기계학습으로 오작동(거짓 경보) 획기적 축소.</li>
+                        <li><strong>강력한 장애 내결함성 입증:</strong> 하드웨어 단선 지연 2초 강제 차단 및 인공지능 모듈 고장 자동 백업 룰 복구를 완비.</li>
+                        <li><strong>검증된 배포 완성도:</strong> Systemd 상시 가동 데몬화와 HTTPS 보안 암호 터널 관제망 설계를 즉시 양산급 기기에 적용 가능한 수준으로 설계.</li>
+                    </ul>
+                </div>
+                <div class="content-card" style="display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; background: rgba(99, 102, 241, 0.05); border-color: rgba(99, 102, 241, 0.15);">
+                    <h3 class="highlight-indigo" style="font-size: 1.5rem; margin-bottom: 0.5rem;">Q & A</h3>
+                    <p style="font-size: 0.95rem; color: var(--text-secondary); line-height: 1.5;">에지 AI 스마트 실버케어 시스템에 관한 질문을 주시면 성실히 답변해 드리겠습니다.</p>
+                    <div style="margin-top: 1.5rem; font-size: 0.85rem; color: var(--accent-cyan); font-weight: 600;">경청해 주셔서 대단히 감사합니다.</div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Navigation Footer Bar -->
+    <footer class="presentation-footer">
+        <div class="footer-logo">
+            <i data-lucide="activity" class="highlight-emerald"></i>
+            <span>AIoT Care Presentation</span>
+        </div>
+        <div class="nav-controls">
+            <button class="nav-btn" id="prev-btn" onclick="navigateSlide(-1)" disabled>
+                <i data-lucide="chevron-left"></i>
+            </button>
+            <span class="slide-counter" id="slide-counter">1 / 8</span>
+            <button class="nav-btn" id="next-btn" onclick="navigateSlide(1)">
+                <i data-lucide="chevron-right"></i>
+            </button>
+            <button class="btn-fullscreen" onclick="toggleFullScreen()" title="전체화면">
+                <i data-lucide="maximize-2"></i>
+            </button>
+        </div>
+    </footer>
+
+    <script>
+        // Init Lucide icons
+        lucide.createIcons();
+
+        // Slide State Management
+        let currentSlideIdx = 0;
+        const slides = document.querySelectorAll('.slide');
+        const prevBtn = document.getElementById('prev-btn');
+        const nextBtn = document.getElementById('next-btn');
+        const counterEl = document.getElementById('slide-counter');
+
+        function updateSlideUI() {
+            slides.forEach((slide, idx) => {
+                if (idx === currentSlideIdx) {
+                    slide.classList.add('active');
+                } else {
+                    slide.classList.remove('active');
+                }
+            });
+
+            // Update footer controls
+            counterEl.innerText = `${currentSlideIdx + 1} / ${slides.length}`;
+            prevBtn.disabled = currentSlideIdx === 0;
+            nextBtn.disabled = currentSlideIdx === slides.length - 1;
+        }
+
+        function navigateSlide(direction) {
+            const nextIdx = currentSlideIdx + direction;
+            if (nextIdx >= 0 && nextIdx < slides.length) {
+                currentSlideIdx = nextIdx;
+                updateSlideUI();
+            }
+        }
+
+        // Keydown Event Handling for Navigation
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'Enter') {
+                e.preventDefault();
+                navigateSlide(1);
+            } else if (e.key === 'ArrowLeft') {
+                e.preventDefault();
+                navigateSlide(-1);
+            }
+        });
+
+        // Fullscreen Toggle Control
+        function toggleFullScreen() {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen().catch(err => {
+                    console.error(`Error attempting to enable full-screen mode: ${err.message}`);
+                });
+            } else {
+                document.exitFullscreen();
+            }
+        }
+    </script>
+</body>
+</html>
