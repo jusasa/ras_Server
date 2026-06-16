@@ -115,7 +115,7 @@ flowchart TD
 | **HC-SR04 (Echo)** | 적재량 측정을 위한 거리 수신 | `GPIO 18` (Pin 12) | Digital Input | 반사되어 돌아온 펄스 폭의 시간을 측정해 센티미터 단위 환산 |
 | **Limit Switch** | 쓰레기통 뚜껑의 개폐 감지 | `GPIO 13` (Pin 33) | Digital Input | 내부 풀업(Pull-up) 저항 모드 사용. 안 눌렸을 때=닫힘 매핑 |
 | **Servo Motor** | 강제 환기 댐퍼 작동 시연 | `GPIO 6` (Pin 31) | PWM Output | PWM 펄스 신호로 환기 댐퍼 모터 각도 제어 (최대 180도) |
-| **PIR Sensor** | 인체 움직임 감지 | `GPIO 27` (Pin 13) | Digital Input | 인체 움직임 감지 시 서보모터 연동 구동 (90->180도, 4초 대기 후 복귀) |
+| **PIR Sensor** | 인체 움직임 감지 | `GPIO 27` (Pin 13) | Digital Input | 인체 움직임 감지 시 서보모터 연동 구동 (90->0도, 4초 대기 후 복귀) |
 | **LED Green** | 상태 표시: 정상 (NORMAL) | `GPIO 19` (Pin 35) | Digital Output | 위생상 쾌적하고 꽉 차지 않은 평온한 상태 알림 |
 | **LED Yellow** | 상태 표시: 주의 (WARNING) | `GPIO 26` (Pin 37) | Digital Output | 가스가 증가하거나, 온도가 상승하여 부패가 우려되는 주의 알림 |
 | **LED Red** | 상태 표시: 위험 (DANGER) | `GPIO 16` (Pin 36) | Digital Output | 부패 악취 가스가 높거나, 내부 온도가 위험하거나, 적재 완료된 상태 |

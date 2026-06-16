@@ -218,17 +218,17 @@ class HardwareController:
             
         self.servo_busy = True
         try:
-            logger.info("[PIR 센서 서보 제어] 서보모터 회전: 90도 -> 180도")
+            logger.info("[PIR 센서 서보 제어] 서보모터 회전: 90도 -> 0도")
             if self.has_hw:
                 self.led_action.on()
-                self.servo.max()
+                self.servo.min()
             else:
-                logger.info("[가상 서보 모터] 위치: 180도 (max) 이동")
+                logger.info("[가상 서보 모터] 위치: 0도 (min) 이동")
                 
             logger.info("[PIR 센서 서보 제어] 4초간 정지")
             time.sleep(4)
             
-            logger.info("[PIR 센서 서보 제어] 서보모터 회전: 180도 -> 90도 (복귀)")
+            logger.info("[PIR 센서 서보 제어] 서보모터 회전: 0도 -> 90도 (복귀)")
             if self.has_hw:
                 self.servo.mid()
                 time.sleep(1) # 모터가 복귀할 수 있는 충분한 시간을 줌
