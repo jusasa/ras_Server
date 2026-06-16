@@ -62,7 +62,17 @@ class TFLiteEngine:
             try:
                 expected_batch_size = self.input_details[0]['shape'][0]
             except Exception:
-                  # 기본 제어 명령 구조 (정상 상태 디폴트)
+                expected_batch_size = 1
+
+        # 배치 차원 팽창 (예: [1, 4] -> [expected_batch_size, 4])
+        input_data = np.repeat(np.array([features], dtype=np.float32), expected_batch_size, axis=0)
+        return input_data
+
+    def _postprocess(self, model_output, raw_data):
+        """
+        AI 모델 추론 결과를 분석하여 Smart Eco-Bin의 상태와 제어 명령을 결정합니다.
+        """
+        # 기본 제어 명령 구조 (정상 상태 디폴트)
         command = {
             "status": "NORMAL",        # 'NORMAL', 'WARNING', 'DANGER'
             "led_action": False,       # LED 4 켬 여부 (제외됨)
@@ -112,23 +122,6 @@ class TFLiteEngine:
                 command["status"] = "DANGER"
                 command["led_action"] = False
                 command["run_fan"] = False
-                command["ai_status"] = "위험 감지! (센서 임계치 초과 [폴백 룰])"
-            # 2) 주의 상태
-            elif gas >= 300.0 or temp >= 28.0 or dist <= 25.0:
-                command["status"] = "WARNING"
-                command["led_action"] = False
-                command["run_fan"] = False
-                command["ai_status"] = "주의 상태 (악취 및 부패 우려 [폴백 룰])"
-            # 3) 정상/안정 상태
-            else:
-                command["status"] = "NORMAL"
-                command["led_action"] = False
-                command["run_fan"] = False
-                command["ai_status"] = "정상 상태 (안정적 [폴백 룰])"��기 적재거리가 매우 가까울 때)
-            if gas >= 600.0 or temp >= 33.0 or dist <= 10.0:
-                command["status"] = "DANGER"
-                command["led_action"] = True
-                command["run_fan"] = True
                 command["ai_status"] = "위험 감지! (센서 임계치 초과 [폴백 룰])"
             # 2) 주의 상태
             elif gas >= 300.0 or temp >= 28.0 or dist <= 25.0:
