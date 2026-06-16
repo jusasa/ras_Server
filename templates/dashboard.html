@@ -86,7 +86,7 @@
         <h2 class="text-lg font-bold tracking-tight text-slate-300 mb-4 flex items-center gap-2">
             <i data-lucide="gauge" class="text-slate-400 w-5 h-5"></i> 실시간 계측 센서 데이터 (Sensors)
         </h2>
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 mb-8">
             <!-- 1. 부패 가스 (MQ-6) -->
             <div class="glass-panel p-5 rounded-2xl flex flex-col justify-between hover:border-slate-700 transition-all duration-300">
                 <div class="flex justify-between items-start">
@@ -126,6 +126,18 @@
                     <span class="text-xs text-slate-500 mt-1 block">미생물 번식 최적도 지표</span>
                 </div>
             </div>
+
+            <!-- 4. PIR 움직임 감지 -->
+            <div class="glass-panel p-5 rounded-2xl flex flex-col justify-between hover:border-slate-700 transition-all duration-300 relative overflow-hidden" id="pir-card">
+                <div class="flex justify-between items-start">
+                    <span class="text-slate-400 text-xs font-semibold">움직임 감지 (PIR)</span>
+                    <span class="p-2 rounded-xl bg-purple-500/10 text-purple-400" id="pir-icon-wrapper"><i data-lucide="eye" class="w-5 h-5"></i></span>
+                </div>
+                <div class="mt-4">
+                    <div class="text-3xl font-extrabold tracking-tight" id="pir-val">대기 중</div>
+                    <span class="text-xs text-slate-500 mt-1 block" id="pir-desc">실시간 움직임 감시 중</span>
+                </div>
+            </div>
         </div>
 
         <!-- ML Training Data Acquisition Control -->
@@ -156,7 +168,7 @@
         <h2 class="text-lg font-bold tracking-tight text-slate-300 mb-4 flex items-center gap-2">
             <i data-lucide="settings" class="text-slate-400 w-5 h-5"></i> 액추에이터 제어 및 상태 (Actuators)
         </h2>
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
             <!-- 하드웨어 상태 표시 LED -->
             <div class="glass-panel p-6 rounded-2xl md:col-span-2">
                 <h3 class="text-sm font-semibold text-slate-400 mb-4">물리 지시등 상태 (LED Indicator Status)</h3>
@@ -189,6 +201,18 @@
                 <button onclick="triggerVentilation()" class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold py-3 px-6 rounded-xl transition-all duration-200 flex justify-center items-center gap-2 active:scale-[0.98] shadow-lg shadow-blue-950/40">
                     <i data-lucide="rotate-cw" class="w-5 h-5"></i>
                     강제 환기 동작 실행
+                </button>
+            </div>
+
+            <!-- 가상 PIR 센서 테스트 -->
+            <div class="glass-panel p-6 rounded-2xl flex flex-col justify-between">
+                <div>
+                    <h3 class="text-sm font-semibold text-slate-400 mb-2">PIR 센서 테스트</h3>
+                    <p class="text-xs text-slate-500 mb-4">가상 PIR 움직임 감지 신호 발생</p>
+                </div>
+                <button onclick="triggerPirMotion()" class="w-full bg-gradient-to-r from-purple-600 to-fuchsia-600 hover:from-purple-500 hover:to-fuchsia-500 text-white font-bold py-3 px-6 rounded-xl transition-all duration-200 flex justify-center items-center gap-2 active:scale-[0.98] shadow-lg shadow-purple-950/40">
+                    <i data-lucide="user-check" class="w-5 h-5"></i>
+                    움직임 감지 트리거
                 </button>
             </div>
         </div>
@@ -230,6 +254,19 @@
                 }
             } catch (error) {
                 console.error('환기 요청 에러:', error);
+            }
+        }
+
+        // 수동 PIR 움직임 시뮬레이션 트리거
+        async function triggerPirMotion() {
+            try {
+                const response = await fetch('/api/control/trigger_pir');
+                const data = await response.json();
+                if (data.status === 'success') {
+                    console.log('수동 PIR 움직임 감지 요청 성공');
+                }
+            } catch (error) {
+                console.error('PIR 요청 에러:', error);
             }
         }
 
@@ -288,11 +325,33 @@
             ws.onmessage = (event) => {
                 const data = JSON.parse(event.data);
                 
-                // 1. 센서 데이터 갱신
+                 // 1. 센서 데이터 갱신
                 const sensors = data.sensors;
                 document.getElementById('gas-val').innerText = sensors.gas;
                 document.getElementById('hum-val').innerText = sensors.humidity;
                 document.getElementById('dist-val').innerText = sensors.distance_cm;
+                
+                // PIR 상태 갱신
+                const pirCard = document.getElementById('pir-card');
+                const pirVal = document.getElementById('pir-val');
+                const pirDesc = document.getElementById('pir-desc');
+                const pirIconWrapper = document.getElementById('pir-icon-wrapper');
+                
+                if (sensors.motion_detected) {
+                    pirVal.innerText = "움직임 감지!";
+                    pirVal.className = "text-3xl font-extrabold tracking-tight text-purple-400 animate-pulse";
+                    pirDesc.innerText = "서보모터 구동 중 (4초 정지)";
+                    pirDesc.className = "text-xs text-purple-300 mt-1 block font-semibold";
+                    pirCard.className = "glass-panel p-5 rounded-2xl flex flex-col justify-between border-purple-500/50 shadow-[0_0_15px_rgba(168,85,247,0.2)] bg-slate-900 transition-all duration-300 relative overflow-hidden";
+                    pirIconWrapper.className = "p-2 rounded-xl bg-purple-500 text-white animate-bounce";
+                } else {
+                    pirVal.innerText = "감지 안 됨";
+                    pirVal.className = "text-3xl font-extrabold tracking-tight text-slate-300";
+                    pirDesc.innerText = "실시간 움직임 감시 중";
+                    pirDesc.className = "text-xs text-slate-500 mt-1 block";
+                    pirCard.className = "glass-panel p-5 rounded-2xl flex flex-col justify-between hover:border-slate-700 transition-all duration-300 relative overflow-hidden";
+                    pirIconWrapper.className = "p-2 rounded-xl bg-purple-500/10 text-purple-400";
+                }
                 
                 // 적재율 계산 (센서-쓰레기 거리가 가까울수록 적재율이 올라감)
                 // 총 뚜껑 높이를 대략 30cm라 가정

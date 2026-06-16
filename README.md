@@ -27,7 +27,8 @@
 | **DHT11** | 내부 온도 및 습도 측정 | `GPIO 21` |
 | **HC-SR04** | 쓰레기 적재량(거리) 측정 | Trig: `GPIO 17`, Echo: `GPIO 18` |
 | **Limit Switch** | 뚜껑 개폐 여부 (오탐 방지) | `GPIO 13` |
-| **Servo Motor** | 강제 환기/탈취 동작 시연용 | `GPIO 6` |
+| **PIR Sensor** | 인체 움직임 감지 (서보 연동) | `GPIO 27` |
+| **Servo Motor** | 강제 환기/탈취 및 PIR 감지 회전 | `GPIO 6` |
 | **LED 1 (Green)** | 상태 표시 (정상) | `GPIO 19` |
 | **LED 2 (Yellow)** | 상태 표시 (주의) | `GPIO 26` |
 | **LED 3 (Red)** | 상태 표시 (위험) | `GPIO 16` |

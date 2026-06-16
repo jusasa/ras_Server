@@ -21,7 +21,7 @@ except ImportError:
     HAS_HARDWARE = False
 
 try:
-    from gpiozero import DistanceSensor, Button, Servo, LED
+    from gpiozero import DistanceSensor, Button, Servo, LED, MotionSensor
 except ImportError:
     logger.warning("[하드웨어 알림] gpiozero 라이브러리가 없어 가상 GPIO 핀 및 액추에이터로 동작합니다.")
     HAS_HARDWARE = False
@@ -30,6 +30,8 @@ except ImportError:
 class HardwareController:
     def __init__(self):
         self.has_hw = HAS_HARDWARE
+        self.servo_busy = False
+        self.virtual_motion = False # 가상 PIR 트리거용 플래그
         
         if self.has_hw:
             try:
@@ -51,12 +53,20 @@ class HardwareController:
                 
                 # 5. 서보 모터 (강제 환기 또는 탈취제 분사) - GPIO 6
                 self.servo = Servo(6)
+                # 초깃값 90도 설정 후 떨림 방지를 위해 분리
+                self.servo.mid()
+                time.sleep(0.5)
+                self.servo.detach()
                 
                 # 6. 상태 표시 LED (19, 26, 16, 20)
                 self.led_normal = LED(19)   # 초록 (정상)
                 self.led_warning = LED(26)  # 노랑 (주의)
                 self.led_danger = LED(16)   # 빨강 (위험)
                 self.led_action = LED(20)   # 파랑 (팬/서보 작동 표시)
+                
+                # 7. PIR 센서 - GPIO 27
+                self.pir = MotionSensor(27)
+                self.pir.when_motion = self.on_motion_detected
             except Exception as e:
                 logger.error(f"[하드웨어 초기화 실패] 에러: {e}. 가상 시뮬레이션 모드로 강제 전환합니다.")
                 self.has_hw = False
@@ -101,12 +111,23 @@ class HardwareController:
             distance = round(random.uniform(5.0, 28.0), 1)
             is_closed = True # 테스트 편의상 항상 닫힘 상태로 시뮬레이션
             
+            # 가상 환경에서 무작위 또는 수동 트리거로 움직임 감시
+            motion_detected = False
+            if self.virtual_motion:
+                motion_detected = True
+            elif not self.servo_busy and random.random() < 0.05: # 약 5% 확률로 자동 트리거
+                motion_detected = True
+                self.virtual_motion = True
+                import threading
+                threading.Thread(target=self.run_pir_servo_sequence, daemon=True).start()
+            
             return {
                 "gas": gas,
                 "temperature": temperature,
                 "humidity": humidity,
                 "distance_cm": distance,
                 "is_closed": is_closed,
+                "motion_detected": motion_detected or self.servo_busy,
                 "timestamp": time.time()
             }
             
@@ -148,12 +169,20 @@ class HardwareController:
             logger.warning(f"[Limit Switch 오류] 스위치 상태를 읽을 수 없습니다: {e}")
             is_closed = True
 
+        # 5. PIR 센서 계측
+        try:
+            motion_detected = self.pir.motion_detected
+        except Exception as e:
+            logger.warning(f"[PIR 센서 오류] 상태를 읽을 수 없습니다: {e}")
+            motion_detected = False
+
         return {
             "gas": gas,
             "temperature": temperature,
             "humidity": humidity,
             "distance_cm": round(distance, 1),
             "is_closed": is_closed,
+            "motion_detected": motion_detected or self.servo_busy,
             "timestamp": time.time()
         }
 
@@ -176,6 +205,42 @@ class HardwareController:
                 self.led_danger.on()
         except Exception as e:
             logger.error(f"[LED 제어 에러]: {e}")
+
+    def on_motion_detected(self):
+        logger.info("[PIR 센서] 움직임 감지됨! 서보모터 구동 시퀀스를 시작합니다.")
+        import threading
+        threading.Thread(target=self.run_pir_servo_sequence, daemon=True).start()
+
+    def run_pir_servo_sequence(self):
+        if self.servo_busy:
+            logger.info("[PIR 센서] 서보모터가 이미 구동 중이므로 추가 트리거를 무시합니다.")
+            return
+            
+        self.servo_busy = True
+        try:
+            logger.info("[PIR 센서 서보 제어] 서보모터 회전: 90도 -> 180도")
+            if self.has_hw:
+                self.led_action.on()
+                self.servo.max()
+            else:
+                logger.info("[가상 서보 모터] 위치: 180도 (max) 이동")
+                
+            logger.info("[PIR 센서 서보 제어] 4초간 정지")
+            time.sleep(4)
+            
+            logger.info("[PIR 센서 서보 제어] 서보모터 회전: 180도 -> 90도 (복귀)")
+            if self.has_hw:
+                self.servo.mid()
+                time.sleep(1) # 모터가 복귀할 수 있는 충분한 시간을 줌
+                self.servo.detach()
+                self.led_action.off()
+            else:
+                logger.info("[가상 서보 모터] 위치: 90도 (mid) 복귀")
+        except Exception as e:
+            logger.error(f"[PIR 서보 제어 에러]: {e}")
+        finally:
+            self.servo_busy = False
+            self.virtual_motion = False
 
     def run_ventilation(self):
         """환기 서보모터 구동 시연"""

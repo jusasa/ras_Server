@@ -28,7 +28,8 @@ async def simulate_hardware_timeout():
             "temperature": 0.0,
             "humidity": 0.0,
             "distance_cm": 200.0,
-            "is_closed": False
+            "is_closed": False,
+            "motion_detected": False
         }
         print(f"✔️ 메인 루프 생존 확인 -> 폴백 데이터 정상 반환됨: {fallback_data['distance_cm']}cm")
 
@@ -55,7 +56,7 @@ def simulate_ai_inference_error():
     # 정상적인 센서 데이터 입력
     raw_sensor_data = {
         "gas": 350, "temperature": 25.0, "humidity": 60.0, 
-        "distance_cm": 15.0, "is_closed": True
+        "distance_cm": 15.0, "is_closed": True, "motion_detected": False
     }
     
     # predict() 호출 시 내부의 try-except가 에러를 잡고 안전 모드로 전환하는지 확인

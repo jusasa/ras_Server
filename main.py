@@ -180,7 +180,8 @@ async def collect_data_loop():
                     "temperature": data["temperature"],
                     "humidity": data["humidity"],
                     "distance_cm": data["distance_cm"],
-                    "is_closed": data["is_closed"]
+                    "is_closed": data["is_closed"],
+                    "motion_detected": data.get("motion_detected", False)
                 },
                 "ai_decision": ai_decision,
                 "collecting_label": current_label
@@ -244,6 +245,16 @@ async def control_ventilate():
     if mqtt_client and mqtt_client.is_connected():
         mqtt_client.publish(MQTT_PUB_AI_TOPIC, json.dumps({"status": "MANUAL_CONTROL", "ai_status": "사용자에 의한 수동 환기 작동", "run_fan": True}))
     return {"status": "success", "message": "Ventilation started"}
+
+# 수동 PIR 움직임 트리거 API
+@app.get("/api/control/trigger_pir")
+async def trigger_pir():
+    logger.info("[원격 제어] API를 통한 수동 PIR 움직임 감지 시뮬레이션 실행")
+    if hw:
+        hw.virtual_motion = True
+        import threading
+        threading.Thread(target=hw.run_pir_servo_sequence, daemon=True).start()
+    return {"status": "success", "message": "PIR motion triggered"}
 
 # WebSocket 엔드포인트
 @app.websocket("/ws")
