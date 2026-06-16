@@ -228,25 +228,10 @@ class HardwareController:
             logger.info("[PIR 센서 서보 제어] 4초간 정지")
             time.sleep(4)
             
-            logger.info("[PIR 센서 서보 제어] 서보모터 회전: 0도 -> 원래 위치 (약 94.5도, 점진적 복귀)")
-            
-            start_val = -1.0
-            target_val = 0.05  # 약 94.5도 (리미트 스위치 접점 각도)
-            steps = 15
-            step_delay = 0.1  # 100ms 간격 (총 1.5초 소요)
-            
-            for i in range(1, steps + 1):
-                current_val = start_val + (target_val - start_val) * (i / steps)
-                if self.has_hw:
-                    self.servo.value = current_val
-                else:
-                    if i % 5 == 0 or i == steps:
-                        approx_angle = int(90 + current_val * 90)
-                        logger.info(f"[가상 서보 모터] 점진적 복귀 중... {approx_angle}도 ({current_val:.3f})")
-                time.sleep(step_delay)
-                
+            logger.info("[PIR 센서 서보 제어] 서보모터 회전: 원래 위치 (약 94.5도) 즉시 복귀")
             if self.has_hw:
-                time.sleep(0.5) # 마지막 미세 움직임 후 대기
+                self.servo.value = 0.05  # 원래 위치 (약 94.5도)
+                time.sleep(1.0)          # 모터가 복귀할 충분한 시간 부여
                 self.servo.detach()
                 self.led_action.off()
             else:
