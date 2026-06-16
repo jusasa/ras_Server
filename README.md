@@ -29,10 +29,10 @@
 | **Limit Switch** | 뚜껑 개폐 여부 (오탐 방지) | `GPIO 13` |
 | **PIR Sensor** | 인체 움직임 감지 (서보 연동) | `GPIO 27` |
 | **Servo Motor** | 강제 환기/탈취 및 PIR 감지 회전 | `GPIO 6` |
-| **LED 1 (Green)** | 상태 표시 (정상) | `GPIO 19` |
-| **LED 2 (Yellow)** | 상태 표시 (주의) | `GPIO 26` |
-| **LED 3 (Red)** | 상태 표시 (위험) | `GPIO 16` |
-| **LED 4 (Blue)** | 액추에이터 작동 확인 | `GPIO 20` |
+| **LED 1** | 상태 표시 (정상) | `GPIO 19` |
+| **LED 2** | 상태 표시 (주의) | `GPIO 26` |
+| **LED 3** | 상태 표시 (위험) | `GPIO 16` |
+| **LED 4** | 액추에이터 작동 확인 | `GPIO 20` |
 
 ## 📁 디렉토리 구조 (Directory Structure)
 ```text
