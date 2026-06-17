@@ -217,6 +217,33 @@ class HardwareController:
         import threading
         threading.Thread(target=self.run_pir_servo_sequence, daemon=True).start()
 
+    def _set_servo_smooth(self, target_value, duration=0.6):
+        """서보 모터 값을 부드럽게 조절하여 급격한 전류 소모 및 기어 충격을 방지합니다."""
+        if not self.has_hw:
+            return
+            
+        current_value = self.servo.value
+        # PWM 신호가 차단(0.0)되어 있었던 경우, 기본 위치에서 시작하여 천천히 안착
+        if current_value == 0.0:
+            current_value = 0.07625
+            self.servo.value = current_value
+            time.sleep(0.05)
+            
+        step_time = 0.03
+        steps = int(duration / step_time)
+        if steps <= 0:
+            self.servo.value = target_value
+            return
+            
+        step_size = (target_value - current_value) / steps
+        for _ in range(steps):
+            current_value += step_size
+            current_value = max(0.05, min(0.10, current_value))
+            self.servo.value = current_value
+            time.sleep(step_time)
+            
+        self.servo.value = target_value
+
     def run_pir_servo_sequence(self):
         if self.servo_busy:
             logger.info("[PIR 센서] 서보모터가 이미 구동 중이므로 추가 트리거를 무시합니다.")
@@ -224,22 +251,20 @@ class HardwareController:
             
         self.servo_busy = True
         try:
-            logger.info("[PIR 센서 서보 제어] 서보모터 회전: 원래 위치 -> 0도 (급격히 이동)")
+            logger.info("[PIR 센서 서보 제어] 서보모터 회전: 원래 위치 -> 0도 (부드럽게 이동)")
             if self.has_hw:
                 self.led_action.on()
-                # 0도 (펄스폭 1.0ms -> duty_cycle = 1.0 / 20 = 0.05)
-                self.servo.value = 0.05
+                self._set_servo_smooth(0.05, duration=0.5)
             else:
                 logger.info("[가상 서보 모터] 위치: 0도 (min) 이동")
                 
             logger.info("[PIR 센서 서보 제어] 4초간 정지")
             time.sleep(4)
             
-            logger.info("[PIR 센서 서보 제어] 서보모터 회전: 원래 위치 (약 94.5도) 즉시 복귀")
+            logger.info("[PIR 센서 서보 제어] 서보모터 회전: 원래 위치 (약 94.5도) 부드럽게 복귀")
             if self.has_hw:
-                # 원래 위치 (펄스폭 1.525ms -> duty_cycle = 1.525 / 20 = 0.07625)
-                self.servo.value = 0.07625  # 원래 위치 (약 94.5도)
-                time.sleep(1.0)          # 모터가 복귀할 충분한 시간 부여
+                self._set_servo_smooth(0.07625, duration=0.6)
+                time.sleep(0.2)
                 self.servo.value = 0.0   # 떨림 방지를 위해 신호 차단
                 self.led_action.off()
             else:
@@ -260,12 +285,12 @@ class HardwareController:
             
         try:
             self.led_action.on()
-            # 180도 (펄스폭 2.0ms -> duty_cycle = 2.0 / 20 = 0.10)
-            self.servo.value = 0.10
-            time.sleep(1)
-            # 0도 (펄스폭 1.0ms -> duty_cycle = 1.0 / 20 = 0.05)
-            self.servo.value = 0.05
-            time.sleep(1)
+            # 180도까지 부드럽게 개방
+            self._set_servo_smooth(0.10, duration=0.8)
+            time.sleep(0.5)
+            # 0도까지 부드럽게 폐쇄
+            self._set_servo_smooth(0.05, duration=0.8)
+            time.sleep(0.5)
             self.servo.value = 0.0 # 떨림 방지 (신호 차단)
             self.led_action.off()
         except Exception as e:
