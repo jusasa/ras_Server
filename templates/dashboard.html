@@ -356,10 +356,10 @@
                     pirIconWrapper.className = "p-2 rounded-xl bg-purple-500/10 text-purple-400";
                 }
                 
-                // 적재율 계산 (센서-쓰레기 거리가 가까울수록 적재율이 올라감)
-                // 총 뚜껑 높이를 대략 30cm라 가정
-                const totalHeight = 30;
-                let fillPercent = Math.round(((totalHeight - sensors.distance_cm) / totalHeight) * 100);
+                // 적재율 계산 (비어있을 때 약 22cm, 가득 찼을 때 약 2cm 기준)
+                const emptyDistance = 22;
+                const fullDistance = 2;
+                let fillPercent = Math.round(((emptyDistance - sensors.distance_cm) / (emptyDistance - fullDistance)) * 100);
                 fillPercent = Math.max(0, Math.min(100, fillPercent));
                 document.getElementById('fill-percent').innerText = fillPercent;
 
