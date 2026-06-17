@@ -251,12 +251,12 @@ class HardwareController:
             
         self.servo_busy = True
         try:
-            logger.info("[PIR 센서 서보 제어] 서보모터 회전: 원래 위치 -> 0도 (부드럽게 이동)")
+            logger.info("[PIR 센서 서보 제어] 서보모터 회전: 원래 위치 -> 15도 (부드럽게 이동)")
             if self.has_hw:
                 self.led_action.on()
-                self._set_servo_smooth(0.05, duration=0.5)
+                self._set_servo_smooth(0.054, duration=0.5)
             else:
-                logger.info("[가상 서보 모터] 위치: 0도 (min) 이동")
+                logger.info("[가상 서보 모터] 위치: 15도 이동")
                 
             logger.info("[PIR 센서 서보 제어] 4초간 정지")
             time.sleep(4)
@@ -286,8 +286,8 @@ class HardwareController:
             # 180도까지 부드럽게 개방
             self._set_servo_smooth(0.10, duration=0.8)
             time.sleep(0.5)
-            # 0도까지 부드럽게 폐쇄
-            self._set_servo_smooth(0.05, duration=0.8)
+            # 15도까지 부드럽게 폐쇄
+            self._set_servo_smooth(0.054, duration=0.8)
             time.sleep(0.5)
             self.servo.value = 0.0 # 떨림 방지 (신호 차단)
             self.led_action.off()
