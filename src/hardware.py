@@ -115,7 +115,7 @@ class HardwareController:
             temperature = round(random.uniform(22.0, 27.5), 1)
             humidity = round(random.uniform(40.0, 65.0), 1)
             distance = round(random.uniform(5.0, 28.0), 1)
-            is_closed = True # 테스트 편의상 항상 닫힘 상태로 시뮬레이션
+            is_closed = not self.servo_busy
             
             # 가상 환경에서 무작위 또는 수동 트리거로 움직임 감시
             motion_detected = False
@@ -167,12 +167,10 @@ class HardwareController:
             logger.warning(f"[HC-SR04 초음파 센서 계측 오류] 거리 읽기 실패 ({e}). 직전 유효값을 유지합니다.")
             distance = self.last_distance
 
-        # 4. 리미트 스위치 계측 (반대 로직 적용)
+        # 4. 리미트 스위치 계측
         try:
-            # 반대 로직: switch가 눌리지 않았을 때(is_pressed=False)를 뚜껑이 닫힌 상태(is_closed=True)로 매핑
-            is_closed = not self.limit_switch.is_pressed
-        except Exception as e:
-            logger.warning(f"[Limit Switch 오류] 스위치 상태를 읽을 수 없습니다: {e}")
+            is_closed = not self.servo_busy
+        except Exception:
             is_closed = True
 
         # 5. PIR 센서 계측
