@@ -261,12 +261,14 @@ class HardwareController:
             logger.info("[PIR 센서 서보 제어] 4초간 정지")
             time.sleep(4)
             
-            logger.info("[PIR 센서 서보 제어] 서보모터 신호 차단: 무게에 의한 자연 복귀 유도")
+            logger.info("[PIR 센서 서보 제어] 서보모터 회전: 원래 위치 (약 94.5도) 부드럽게 복귀 후 신호 차단")
             if self.has_hw:
-                self.servo.value = 0.0   # 신호 차단 (모터 힘 해제)
+                self._set_servo_smooth(0.07625, duration=0.6)
+                time.sleep(0.2)
+                self.servo.value = 0.0   # 원래 위치 복귀 후 신호 차단 (모터 힘 해제)
                 self.led_action.off()
             else:
-                logger.info("[가상 서보 모터] 신호 차단 및 자연 복귀 시뮬레이션")
+                logger.info("[가상 서보 모터] 원래 위치 복귀 및 신호 차단 완료")
         except Exception as e:
             logger.error(f"[PIR 서보 제어 에러]: {e}")
         finally:
