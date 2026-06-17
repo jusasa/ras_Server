@@ -1,3 +1,8 @@
+import os
+# os.environ["GPIOZERO_PIN_FACTORY"] = "pigpio"
+
+from gpiozero import PWMOutputDevice
+
 import time
 import random
 import logging
@@ -21,7 +26,7 @@ except ImportError:
     HAS_HARDWARE = False
 
 try:
-    from gpiozero import DistanceSensor, Button, Servo, LED, MotionSensor
+    from gpiozero import DistanceSensor, Button, LED, MotionSensor, PWMOutputDevice
 except ImportError:
     logger.warning("[하드웨어 알림] gpiozero 라이브러리가 없어 가상 GPIO 핀 및 액추에이터로 동작합니다.")
     HAS_HARDWARE = False
@@ -52,11 +57,12 @@ class HardwareController:
                 self.limit_switch = Button(13, pull_up=True)
                 
                 # 5. 서보 모터 (강제 환기 또는 탈취제 분사) - GPIO 6
-                self.servo = Servo(6)
-                # 초깃값 약 94.5도(value=0.05, 리미트 스위치 접점 각도) 설정 후 떨림 방지를 위해 분리
-                self.servo.value = 0.05
+                # 50Hz (주기 20ms) 자체 PWM 출력 장치 설정
+                self.servo = PWMOutputDevice(6, frequency=50)
+                # 초깃값 약 94.5도(펄스폭 1.525ms -> duty_cycle = 1.525 / 20 = 0.07625, 리미트 스위치 접점 각도) 설정 후 떨림 방지를 위해 0.0 설정
+                self.servo.value = 0.07625
                 time.sleep(0.5)
-                self.servo.detach()
+                self.servo.value = 0.0
                 
                 # 6. 상태 표시 LED (19, 26, 16, 20)
                 self.led_normal = LED(19)   # 초록 (정상)
@@ -221,7 +227,8 @@ class HardwareController:
             logger.info("[PIR 센서 서보 제어] 서보모터 회전: 원래 위치 -> 0도 (급격히 이동)")
             if self.has_hw:
                 self.led_action.on()
-                self.servo.min() # 0도
+                # 0도 (펄스폭 1.0ms -> duty_cycle = 1.0 / 20 = 0.05)
+                self.servo.value = 0.05
             else:
                 logger.info("[가상 서보 모터] 위치: 0도 (min) 이동")
                 
@@ -230,9 +237,10 @@ class HardwareController:
             
             logger.info("[PIR 센서 서보 제어] 서보모터 회전: 원래 위치 (약 94.5도) 즉시 복귀")
             if self.has_hw:
-                self.servo.value = 0.05  # 원래 위치 (약 94.5도)
+                # 원래 위치 (펄스폭 1.525ms -> duty_cycle = 1.525 / 20 = 0.07625)
+                self.servo.value = 0.07625  # 원래 위치 (약 94.5도)
                 time.sleep(1.0)          # 모터가 복귀할 충분한 시간 부여
-                self.servo.detach()
+                self.servo.value = 0.0   # 떨림 방지를 위해 신호 차단
                 self.led_action.off()
             else:
                 logger.info("[가상 서보 모터] 원래 위치(약 94.5도) 복귀 완료")
@@ -252,11 +260,13 @@ class HardwareController:
             
         try:
             self.led_action.on()
-            self.servo.max()
+            # 180도 (펄스폭 2.0ms -> duty_cycle = 2.0 / 20 = 0.10)
+            self.servo.value = 0.10
             time.sleep(1)
-            self.servo.min()
+            # 0도 (펄스폭 1.0ms -> duty_cycle = 1.0 / 20 = 0.05)
+            self.servo.value = 0.05
             time.sleep(1)
-            self.servo.detach() # 떨림 방지
+            self.servo.value = 0.0 # 떨림 방지 (신호 차단)
             self.led_action.off()
         except Exception as e:
             logger.error(f"[서보모터 구동 에러]: {e}")
