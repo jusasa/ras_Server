@@ -70,7 +70,10 @@
             <div id="lid-panel" class="glass-panel rounded-2xl p-6 transition-all duration-300 hover:border-slate-700 shadow-xl flex flex-col justify-between">
                 <div>
                     <h2 class="text-sm font-medium uppercase tracking-wider text-slate-400 flex items-center gap-2">
-                        <i data-lucide="door-closed" id="lid-title-icon" class="text-indigo-400 w-4 h-4"></i> 수거통 뚜껑 상태
+                        <span id="lid-icon-container" class="flex items-center">
+                            <i data-lucide="door-closed" class="text-indigo-400 w-4 h-4"></i>
+                        </span>
+                        수거통 뚜껑 상태
                     </h2>
                     <div class="flex items-center gap-3 mt-4">
                         <span id="lid-status-badge" class="px-3 py-1 rounded-full text-xs font-bold bg-slate-800 text-slate-300">
@@ -364,20 +367,29 @@
                 const lidPanel = document.getElementById('lid-panel');
                 const lidBadge = document.getElementById('lid-status-badge');
                 const lidText = document.getElementById('lid-status-text');
-                const lidTitleIcon = document.getElementById('lid-title-icon');
+                const iconContainer = document.getElementById('lid-icon-container');
                 
                 if (sensors.is_closed) {
                     lidBadge.innerText = "닫힘";
                     lidBadge.className = "px-3 py-1 rounded-full text-xs font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20";
                     lidText.innerText = "부패도 추론 가능";
                     lidText.className = "text-lg font-semibold mt-2 text-emerald-400";
-                    lidTitleIcon.setAttribute('data-lucide', 'door-closed');
+                    lidPanel.className = "glass-panel rounded-2xl p-6 border-emerald-500/30 shadow-[0_0_15px_rgba(16,185,129,0.15)] transition-all duration-300 flex flex-col justify-between";
+                    if (iconContainer) {
+                        iconContainer.innerHTML = '<i data-lucide="door-closed" class="text-emerald-400 w-4 h-4"></i>';
+                    }
                 } else {
                     lidBadge.innerText = "열림";
                     lidBadge.className = "px-3 py-1 rounded-full text-xs font-bold bg-rose-500/10 text-rose-400 border border-rose-500/20";
                     lidText.innerText = "오탐 방지 대기 중";
                     lidText.className = "text-lg font-semibold mt-2 text-rose-400";
-                    lidTitleIcon.setAttribute('data-lucide', 'door-open');
+                    lidPanel.className = "glass-panel rounded-2xl p-6 border-rose-500/30 shadow-[0_0_15px_rgba(244,63,94,0.15)] transition-all duration-300 flex flex-col justify-between";
+                    if (iconContainer) {
+                        iconContainer.innerHTML = '<i data-lucide="door-open" class="text-rose-400 w-4 h-4"></i>';
+                    }
+                }
+                if (typeof lucide !== 'undefined') {
+                    lucide.createIcons();
                 }
 
                 // 3. AI 결정 상태 갱신
